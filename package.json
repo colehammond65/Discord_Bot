@@ -1,0 +1,19 @@
+{
+  "name": "marshy-discord-bot",
+  "version": "0.0.1",
+  "description": "Discord Bot for mmarshyellows Discord server",
+  "main": "main.js",
+  "scripts": {
+    "test": "!test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "C:\\Users\\coled\\Repositories\\Marshy-Discord-Bot"
+  },
+  "author": "Cole Hammond",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "set-tz": "^0.2.0"
+  }
+}
