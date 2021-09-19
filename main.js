@@ -1,24 +1,21 @@
 const Discord = require("discord.js");
+request = require('superagent');
 const config = require("./config.json");
 const package = require("./package.json");
 const client = new Discord.Client();
 const prefix = config.prefix;
-var serverID = '848804610713976842';
+var serverID = config.serverID;
+var channelID = config.channelID;
+var _streamer = config.streamer;
+var checkTime = config.checkTime;
+
+var isLive = false;
+var isLocked = false;
+var channel;
 var server;
 
-const setTZ = require('set-tz');
-const timeZone = 'Pacific/Auckland';
-var checkTime = 5000;
-var currentTime;
-
-const lockTime = 18; //6pm
-const unlockTime = 2; //2am
-var channelLocked;
-
-setTZ(timeZone);
-
 //Repeat tasks
-setInterval(() => getCurrentTime(), checkTime);
+setInterval(() => getStreamInfo(_streamer), checkTime);
 
 //Login to DiscordAPI
 client.login(config.token);
@@ -27,6 +24,7 @@ client.login(config.token);
 client.on('ready', () => {
     server = client.guilds.cache.get(serverID);
     console.log(`Logged in as ${client.user.tag} to server ${server.name}`);
+    channel = server.channels.cache.get(channelID);
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
@@ -53,94 +51,99 @@ client.on("message", function(message) {
         return;
     }
 
-    if (command === "time"){
-        getCurrentTime();
-        message.reply(`${currentTime}`);
-        return;
-    }
-
-    if(command === "check"){
-        setChannelLock();
-        return;
-    }
-
-    if(command === "overridelock"){
-        lockChannel();
-        return;
-    }
-
-    if(command === "overrideunlock"){
-        unlockChannel();
-        return;
-    }
-
-    if(command === "test"){
-        lockChannel();
-        return;
-    }
-
     else{
         message.reply(`Command not found`);
         return;
     }
 });
 
-//Get the current date and time
-function getCurrentTime(){
-    //Date Object
-    let date_ob = new Date();
-
-    // current hours
-    let Hours = date_ob.getHours();
-
-    // current hours
-    let Seconds = date_ob.getMinutes();
-
-    currentHour = string = Hours;
-    currentSeconds = string = Seconds;
-    currentTime = string = currentHour + ":" + currentSeconds;
-
-    //console.log(currentHour);
+// Converts the first character of a string to uppercase
+function firstUp(string) {
+    return string.substr(0,1).toUpperCase() + string.substr(1);
 }
 
-//Lock Channel
-function setChannelLock(){
-    getCurrentTime()
-    if(currentHour > lockTime || currentHour < unlockTime){
-        if(!channelLocked){
-            lockChannel();
-        }
-        console.log('Channel already locked')
-    }
-    if(currentHour < lockTime || currentHour > unlockTime){
-        if(channelLocked){
+// Handle the request response
+function response(error, response) {
+    return error ? failure(error) : success(response);
+}
+
+// Handle request success
+function success(response) {
+    // Attempt to get stream information from the response
+    const streamer = firstUp(_streamer),
+    stream = JSON.parse(response.text).stream;
+    // If there's no stream, let the user know the streamer is not streaming
+    if (!stream) {
+        isLive = false;
+        if(isLocked){
             unlockChannel();
         }
-        console.log('Channel already unlocked');
     }
     else{
-        console.log('WTF is going on');
+        isLive = true;
+        if(!isLocked){
+            lockChannel();
+        }
     }
+    console.log("Live: " + isLive);
 }
 
-//Lock Channel
+// Handle request failure
+function failure(error) {
+    output('red', 'An error occured!', error);
+    return process.exit(1);
+}
+
+// Get/output the streamer's details
+function getStreamInfo(streamer){
+    // Make the streamer/program globally accessible
+    _streamer = streamer;
+
+    // Store the header to use for all requests
+    const header = {
+        'Client-ID': '3zzmx0l2ph50anf78iefr6su9d8byj8',
+        'Accept':    'application/vnd.twitchtv.v5+json'
+    };
+
+    // Store the URL to request users...
+    const usersURL = 'https://api.twitch.tv/kraken/users?login=' + streamer
+    // ... and make the request
+    request.get(usersURL).set(header).end((err, res) => {
+        // If an error occured, log a failure
+        if (err) return failure(err);
+
+        // Next, get the users array from the response body...
+        const { users } = res.body;
+
+        // Next, get the user's ID...
+        const { _id: id } = users[0],
+            // ... store the URL to request a stream,...
+            streamsURL = 'https://api.twitch.tv/kraken/streams/' + id;
+        // ... and make the final request
+        request.get(streamsURL).set(header).end(response);
+    });
+};
+
+//Lock Channel 
 function lockChannel(){
-
-    //Lock Channel here
-    let channel = client.channels.fetch('848812160213843998');
-    console.log('Channel name: ' + channel.id);
-
-    channel.updateOverwrite(server.roles.everyone, { VIEW_CHANNEL: false });
-
-    // channelLocked = true;
-    console.log('Channel locked');
+    channel.overwritePermissions([
+        {
+            id: server.roles.everyone.id,
+            deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],
+        },
+    ]);
+    isLocked = true;
+    console.log("Channel Locked");
 }
 
 //Unlock Channel
 function unlockChannel(){
-
-    //Unlock channel here
-    
-    console.log('Channel unlocked');
-    channelLocked = false;
+    channel.overwritePermissions([
+        {
+            id: server.roles.everyone.id,
+            allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],
+        },
+    ]);
+    isLocked = false;
+    console.log("Channel Unlocked");
 }
