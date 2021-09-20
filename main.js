@@ -9,6 +9,7 @@ var channelID = config.channelID;
 var _streamer = config.streamer;
 var checkTime = config.checkTime;
 
+var firstPass = true;
 var isLive = false;
 var isLocked = false;
 var channel;
@@ -75,13 +76,13 @@ function success(response) {
     // If there's no stream, let the user know the streamer is not streaming
     if (!stream) {
         isLive = false;
-        if(isLocked){
+        if(isLocked || firstPass){
             unlockChannel();
         }
     }
     else{
         isLive = true;
-        if(!isLocked){
+        if(!isLocked || firstPass){
             lockChannel();
         }
     }
@@ -133,6 +134,9 @@ function lockChannel(){
         },
     ]);
     isLocked = true;
+    if(firstPass){
+        firstPass = false;
+    }
     console.log("Channel Locked");
 }
 
@@ -145,5 +149,8 @@ function unlockChannel(){
         },
     ]);
     isLocked = false;
+    if(firstPass){
+        firstPass = false;
+    }
     console.log("Channel Unlocked");
 }
