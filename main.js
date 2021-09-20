@@ -77,13 +77,13 @@ function success(response) {
     if (!stream) {
         isLive = false;
         if(isLocked || firstPass){
-            unlockChannel();
+            unlock();
         }
     }
     else{
         isLive = true;
         if(!isLocked || firstPass){
-            lockChannel();
+            lock();
         }
     }
     console.log("Live: " + isLive);
@@ -125,32 +125,29 @@ function getStreamInfo(streamer){
     });
 };
 
-//Lock Channel 
-function lockChannel(){
+function lock(){
+    let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
+    let VIPs = server.roles.cache.find(role => role.name === "VIP");
     channel.overwritePermissions([
-        {
-            id: server.roles.everyone.id,
-            deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],
-        },
+        {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: VIPs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: server.roles.everyone.id, deny: ['VIEW_CHANNEL'],},
     ]);
     isLocked = true;
-    if(firstPass){
-        firstPass = false;
-    }
-    console.log("Channel Locked");
+    firstPass = false;
+    console.log("Locked " + channel.name)
 }
 
-//Unlock Channel
-function unlockChannel(){
+function unlock(){
+    let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
+    let VIPs = server.roles.cache.find(role => role.name === "VIP");
     channel.overwritePermissions([
-        {
-            id: server.roles.everyone.id,
-            allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],
-        },
+        {id: Subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: VIPs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: server.roles.everyone.id, allow: ['VIEW_CHANNEL'],},
     ]);
+    channel.overwritePermissions()
     isLocked = false;
-    if(firstPass){
-        firstPass = false;
-    }
-    console.log("Channel Unlocked");
+    firstPass = false;
+    console.log("Unlocked " + channel.name)
 }
