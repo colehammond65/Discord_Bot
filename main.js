@@ -12,6 +12,7 @@ var checkTime = config.checkTime;
 var firstPass = true;
 var isLive = false;
 var isLocked = false;
+var lastLiveCheck;
 var channel;
 var server;
 
@@ -70,6 +71,7 @@ function response(error, response) {
 
 // Handle request success
 function success(response) {
+    lastLiveCheck = isLive;
     // Attempt to get stream information from the response
     const streamer = firstUp(_streamer),
     stream = JSON.parse(response.text).stream;
@@ -86,7 +88,9 @@ function success(response) {
             lock();
         }
     }
-    console.log("Live: " + isLive);
+    if(lastLiveCheck != isLive){
+        console.log("Live status changed to :" + isLive);
+    }
 }
 
 // Handle request failure
@@ -146,7 +150,6 @@ function unlock(){
         {id: VIPs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: server.roles.everyone.id, allow: ['VIEW_CHANNEL'],},
     ]);
-    channel.overwritePermissions()
     isLocked = false;
     firstPass = false;
     console.log("Unlocked " + channel.name)
