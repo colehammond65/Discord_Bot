@@ -6,14 +6,15 @@ const client = new Discord.Client();
 const prefix = config.prefix;
 var serverID = config.serverID;
 var channelID = config.channelID;
+var logChannelID = config.logChannelID;
 var _streamer = config.streamer;
 var checkTime = config.checkTime;
 
 var firstPass = true;
-var isLive = false;
-var isLocked = false;
-var lastLiveCheck;
+var isLive;
+var isLocked;
 var channel;
+var logChannel;
 var server;
 
 //Repeat tasks
@@ -24,14 +25,20 @@ client.login(config.token);
 
 //Bot startup
 client.on('ready', () => {
+    //Set vars
     server = client.guilds.cache.get(serverID);
-    console.log(`Logged in as ${client.user.tag} to server ${server.name}`);
     channel = server.channels.cache.get(channelID);
+    logChannel = server.channels.cache.get(logChannelID);
+    //Log startup
+    console.log(`Logged in as ${client.user.tag} to server ${server.name}`);
+    logChannel.send(`Logged in as ${client.user.tag} to server ${server.name}`);
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
+    //Log disconnects and reconnect
     console.log('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+    logChannel.send('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     bot.connect();
 });
 
@@ -42,7 +49,8 @@ client.on("message", function(message) {
 
     //Check if message has command prefix
     if (!message.content.startsWith(prefix)) return;
-    console.log('Command recieved');
+    console.log("Command recieved");
+    logChannel.send("Command recieved");
 
     const commandBody = message.content.slice(prefix.length);
     const args = commandBody.split(' ');
@@ -58,46 +66,6 @@ client.on("message", function(message) {
         return;
     }
 });
-
-// Converts the first character of a string to uppercase
-function firstUp(string) {
-    return string.substr(0,1).toUpperCase() + string.substr(1);
-}
-
-// Handle the request response
-function response(error, response) {
-    return error ? failure(error) : success(response);
-}
-
-// Handle request success
-function success(response) {
-    lastLiveCheck = isLive;
-    // Attempt to get stream information from the response
-    const streamer = firstUp(_streamer),
-    stream = JSON.parse(response.text).stream;
-    // If there's no stream, let the user know the streamer is not streaming
-    if (!stream) {
-        isLive = false;
-        if(isLocked || firstPass){
-            unlock();
-        }
-    }
-    else{
-        isLive = true;
-        if(!isLocked || firstPass){
-            lock();
-        }
-    }
-    if(lastLiveCheck != isLive){
-        console.log("Live status changed to :" + isLive);
-    }
-}
-
-// Handle request failure
-function failure(error) {
-    output('red', 'An error occured!', error);
-    return process.exit(1);
-}
 
 // Get/output the streamer's details
 function getStreamInfo(streamer){
@@ -129,7 +97,46 @@ function getStreamInfo(streamer){
     });
 };
 
+// Handle the request response
+function response(error, response) {
+    return error ? failure(error) : success(response);
+}
+
+// Handle request success
+function success(response) {
+    // Attempt to get stream information from the response
+    stream = JSON.parse(response.text).stream;
+    // If there's no stream, let the user know the streamer is not streaming
+    if (!stream) {
+        isLive = false;
+        if(isLocked || firstPass){
+            unlock();
+        }
+        return;
+    }
+    if (stream) {
+        isLive = true;
+        if(!isLocked || firstPass){
+            lock();
+        }
+        return;
+    }
+    else {
+        console.log("Stream didnt return live status correctly");
+        logChannel.send("Stream didnt return live status correctly");
+    }
+}
+
+// Handle request failure
+function failure(error) {
+    console.log("An error occured!: " + error);
+    logChannel.send("An error occured!: " + error);
+    return process.exit(1);
+}
+
+//Lock the discord channel
 function lock(){
+    firstPass = false;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
     channel.overwritePermissions([
@@ -138,11 +145,13 @@ function lock(){
         {id: server.roles.everyone.id, deny: ['VIEW_CHANNEL'],},
     ]);
     isLocked = true;
-    firstPass = false;
-    console.log("Locked " + channel.name)
+    console.log("Locked " + channel.name);
+    logChannel.send("Locked " + channel.name);
 }
 
+//Unlock the discord channel
 function unlock(){
+    firstPass = false;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
     channel.overwritePermissions([
@@ -151,6 +160,6 @@ function unlock(){
         {id: server.roles.everyone.id, allow: ['VIEW_CHANNEL'],},
     ]);
     isLocked = false;
-    firstPass = false;
-    console.log("Unlocked " + channel.name)
+    console.log("Unlocked " + channel.name);
+    logChannel.send("Unlocked " + channel.name);
 }
