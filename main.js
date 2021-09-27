@@ -138,12 +138,12 @@ function failure(error) {
 function lock(){
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
-    let everyone = server.roles.everyone.id;
+    let everyone = server.roles.everyone;
     firstPass = false;
     channel.overwritePermissions([
         {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: VIPs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGE']},
+        {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']},
     ]);
     isLocked = true;
     console.log("Locked " + channel.name);
