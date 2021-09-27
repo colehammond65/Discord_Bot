@@ -136,13 +136,14 @@ function failure(error) {
 
 //Lock the discord channel
 function lock(){
-    firstPass = false;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
+    let everyone = server.roles.everyone.id;
+    firstPass = false;
     channel.overwritePermissions([
         {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: VIPs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: server.roles.everyone.id, deny: ['VIEW_CHANNEL'],},
+        {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGE']},
     ]);
     isLocked = true;
     console.log("Locked " + channel.name);
@@ -151,13 +152,14 @@ function lock(){
 
 //Unlock the discord channel
 function unlock(){
-    firstPass = false;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
+    let everyone = server.roles.everyone;
+    firstPass = false;
     channel.overwritePermissions([
         {id: Subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: VIPs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: server.roles.everyone.id, allow: ['VIEW_CHANNEL'],},
+        {id: everyone.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},
     ]);
     isLocked = false;
     console.log("Unlocked " + channel.name);

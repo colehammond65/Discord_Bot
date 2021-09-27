@@ -1,6 +1,6 @@
 {
   "name": "marshy-discord-bot",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Discord Bot for mmarshyellows Discord server",
   "main": "main.js",
   "scripts": {
