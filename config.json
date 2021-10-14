@@ -1,9 +1,9 @@
 {
 	"prefix": "!",
-	"token": "ODUwMjU3MTQ3NzIzOTA3MDkz.YLnFrQ.xzJ6k1te7RHPOlPhT10U8A2bLJg",
-	"streamer": "mmarshyellow",
-	"serverID" : "720311795704922173",
-	"channelID" : "889305263222427688",
-	"logChannelID" : "798834589459284019",
+	"token": "", //DC Bot token
+	"streamer": "", //twitch username
+	"serverID" : "", //DC server ID
+	"channelID" : "", //DC channel ID
+	"logChannelID" : "", //DC log channel ID
 	"checkTime" : "5000"
 }

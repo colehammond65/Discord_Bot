@@ -1,0 +1,6 @@
+version: "3"
+services:
+  MMY_DC_Bot:
+    image: encrypt/mmy_discord_bot
+    container_name: MMY_DC_Bot
+    restart: unless-stopped

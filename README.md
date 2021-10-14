@@ -1,2 +1,2 @@
-# Marshy-Discord-Bot
- Discord bot for mmy Discord Server
+# Promo Discord Bot
+ Discord bot for locked self promo channels on DC when streaming
