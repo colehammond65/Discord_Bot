@@ -7,16 +7,11 @@ const prefix = config.prefix;
 var serverID = config.serverID;
 var channelID = config.channelID;
 var logChannelID = config.logChannelID;
-
-var firstPass = true;
 var isLive;
 var isLocked;
 var channel;
 var logChannel;
 var server;
-
-//Repeat tasks
-//setInterval(() => getStreamInfo(_streamer), checkTime);
 
 //Login to DiscordAPI
 client.login(config.token);
@@ -57,40 +52,29 @@ client.on("message", function(message) {
         message.reply(`${package.version}`);
         return;
     }
-
-    else{
-        return;
-    }
 });
 
 //Check if Marshy is live
 client.on("presenceUpdate", (oldPresence, newPresence) => {
-    if(newPresence.user.tag == "MMarshyellow#2705") return;
+    if(newPresence.user.tag != "MMarshyellow#2705") return;
     if (!newPresence.activities) return false;
     newPresence.activities.forEach(activity => {
-        if (activity.type == "STREAMING") {
-            isLive = true;
-            if(!isLocked || firstPass){
-                lock();
-            }
-            return;
+        if (activity.type == "STREAMING" && isLive == false) {
+            lock();
         }
         else{
-            isLive = false;
-            if(isLocked || firstPass){
-                unlock();
-            }
-            return;
+            unlock();
         }
     });
 });
 
 //Lock the discord channel
 function lock(){
+    if(isLocked) return;
+    isLive = true;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
     let everyone = server.roles.everyone;
-    firstPass = false;
     channel.overwritePermissions([
         {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: VIPs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
@@ -103,10 +87,11 @@ function lock(){
 
 //Unlock the discord channel
 function unlock(){
+    if(!isLocked) return;
+    isLive = false;
     let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
     let VIPs = server.roles.cache.find(role => role.name === "VIP");
     let everyone = server.roles.everyone;
-    firstPass = false;
     channel.overwritePermissions([
         {id: Subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: VIPs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
