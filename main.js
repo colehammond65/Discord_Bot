@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-request = require('superagent');
+const fetch = require('node-fetch');
 const config = require("./config.json");
 const package = require("./package.json");
 const client = new Discord.Client();
@@ -14,6 +14,19 @@ var logChannel;
 var server;
 var Subs
 var VIPs
+var token;
+
+//#region Setup
+
+setInterval(TwitchCheck, config.checkTime)
+
+fetch('https://id.twitch.tv/oauth2/token?client_id=' + config.client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
+    method: 'POST',
+})
+.then(res => res.json())
+.then(res => {
+    token = res.access_token;
+});
 
 //Login to DiscordAPI
 client.login(config.token);
@@ -40,6 +53,8 @@ client.on('disconnect', function(erMsg, code) {
     bot.connect();
 });
 
+//#endregion
+
 //Check if someone sent a command
 client.on("message", function(message) {
     //Check if message is from myself
@@ -56,32 +71,29 @@ client.on("message", function(message) {
     if (command === "version"){
         message.reply(`${package.version}`);
     }
-
-    if(command === "lock"){
-        lock();
-    }
-
-    if(command === "unlock"){
-        unlock();
-    }
 });
 
-//Check if Marshy is live
-client.on("presenceUpdate", (oldPresence, newPresence) => {
-    if(newPresence.user.tag != "MMarshyellow#2705") return;
-    if (!newPresence.activities){
-        unlock();
-    }
-    newPresence.activities.forEach(activity => {
-        if (activity.type == "STREAMING" && isLive == false) {
+function TwitchCheck(){
+    fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
+        method: 'GET',
+        headers: {
+            'Client-ID': config.client_id,
+            'Authorization': 'Bearer ' + token
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(JSON.stringify(res) != '{"data":[],"pagination":{}}'){
             lock();
-            return;
         }
         else{
             unlock();
         }
     });
-});
+    
+}
+
+//#region Lock/Unlock
 
 //Lock the discord channel
 function lock(){
@@ -112,3 +124,5 @@ function unlock(){
     console.log("Unlocked " + channel.name);
     logChannel.send("Unlocked " + channel.name);
 }
+
+//#endregion

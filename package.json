@@ -1,6 +1,6 @@
 {
   "name": "marshy-discord-bot",
-  "version": "0.0.11",
+  "version": "0.1.0",
   "description": "Discord Bot for mmarshyellows Discord server",
   "main": "main.js",
   "repository": {
@@ -10,7 +10,6 @@
   "author": "Cole Hammond",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "discord.js": "^12.5.3",
-    "superagent": "^6.1.0"
+    "discord.js": "^12.5.3"
   }
 }

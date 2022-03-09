@@ -5,5 +5,7 @@
 	"serverID" : "", //DC server ID
 	"channelID" : "", //DC channel ID
 	"logChannelID" : "", //DC log channel ID
-	"checkTime" : "5000"
+	"checkTime" : "5000", //How often to check if streamer is live
+    "client_id": "", //Twitch api key
+    "client_secret": "" //Twitch api key
 }
