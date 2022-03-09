@@ -12,6 +12,8 @@ var isLocked;
 var channel;
 var logChannel;
 var server;
+var Subs
+var VIPs
 
 //Login to DiscordAPI
 client.login(config.token);
@@ -25,6 +27,9 @@ client.on('ready', () => {
     //Log startup
     console.log(`Logged in as ${client.user.tag} to server ${server.name}`);
     logChannel.send(`Logged in as ${client.user.tag} to server ${server.name}`);
+
+    Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
+    VIPs = server.roles.cache.find(role => role.name === "VIP");
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
@@ -42,25 +47,35 @@ client.on("message", function(message) {
 
     //Check if message has command prefix
     if (!message.content.startsWith(prefix)) return;
-    console.log("Command received");
 
     const commandBody = message.content.slice(prefix.length);
     const args = commandBody.split(' ');
     const command = args.shift().toLowerCase();
+    console.log("Command received: " + command);
 
     if (command === "version"){
         message.reply(`${package.version}`);
-        return;
+    }
+
+    if(command === "lock"){
+        lock();
+    }
+
+    if(command === "unlock"){
+        unlock();
     }
 });
 
 //Check if Marshy is live
 client.on("presenceUpdate", (oldPresence, newPresence) => {
     if(newPresence.user.tag != "MMarshyellow#2705") return;
-    if (!newPresence.activities) return false;
+    if (!newPresence.activities){
+        unlock();
+    }
     newPresence.activities.forEach(activity => {
         if (activity.type == "STREAMING" && isLive == false) {
             lock();
+            return;
         }
         else{
             unlock();
@@ -72,8 +87,6 @@ client.on("presenceUpdate", (oldPresence, newPresence) => {
 function lock(){
     if(isLocked) return;
     isLive = true;
-    let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
-    let VIPs = server.roles.cache.find(role => role.name === "VIP");
     let everyone = server.roles.everyone;
     channel.overwritePermissions([
         {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
@@ -89,8 +102,6 @@ function lock(){
 function unlock(){
     if(!isLocked) return;
     isLive = false;
-    let Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
-    let VIPs = server.roles.cache.find(role => role.name === "VIP");
     let everyone = server.roles.everyone;
     channel.overwritePermissions([
         {id: Subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
