@@ -3,60 +3,61 @@ const fetch = require('node-fetch');
 const config = require("./config.json");
 const package = require("./package.json");
 const client = new Discord.Client();
-const prefix = config.prefix;
-var serverID = config.serverID;
-var channelID = config.channelID;
-var logChannelID = config.logChannelID;
-var isLive;
-var isLocked;
+var client_id = config.client_id;
+var twitch_token;
+var server;
 var channel;
 var logChannel;
-var server;
-var Subs
-var VIPs
-var token;
+var isLocked;
+var subs;
+var vips;
+var everyone;
 
-//#region Setup
-
+//Set TwitchCheck to fire every checkTime ms
 setInterval(TwitchCheck, config.checkTime)
 
-fetch('https://id.twitch.tv/oauth2/token?client_id=' + config.client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
+//Login to Twitch API and get oauth2 token
+fetch('https://id.twitch.tv/oauth2/token?client_id=' + client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
     method: 'POST',
 })
 .then(res => res.json())
 .then(res => {
-    token = res.access_token;
+    twitch_token = res.access_token;
 });
 
 //Login to DiscordAPI
-client.login(config.token);
+client.login(config.discord_token);
 
 //Bot startup
 client.on('ready', () => {
     //Set vars
-    server = client.guilds.cache.get(serverID);
-    channel = server.channels.cache.get(channelID);
-    logChannel = server.channels.cache.get(logChannelID);
+    server = client.guilds.cache.get(config.serverID);
+    channel = server.channels.cache.get(config.channelID);
+    logChannel = server.channels.cache.get(config.logChannelID);
+    subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
+    vips = server.roles.cache.find(role => role.name === "VIP");
+    everyone = server.roles.everyone;
     //Log startup
-    console.log(`Logged in as ${client.user.tag} to server ${server.name}`);
-    logChannel.send(`Logged in as ${client.user.tag} to server ${server.name}`);
-
-    Subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
-    VIPs = server.roles.cache.find(role => role.name === "VIP");
+    console.log(`Connected to server ${server.name} as ${client.user.tag}`);
+    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}`);
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
     //Log disconnects and reconnect
+    bot.connect();
     console.log('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     logChannel.send('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
-    bot.connect();
+    //Log startup
+    console.log(`Connected to server ${server.name} as ${client.user.tag}`);
+    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}`);
 });
-
-//#endregion
 
 //Check if someone sent a command
 client.on("message", function(message) {
+    // Set prefix var
+    const prefix = config.prefix;
+
     //Check if message is from myself
     if (message.author.bot) return;
 
@@ -68,43 +69,41 @@ client.on("message", function(message) {
     const command = args.shift().toLowerCase();
     console.log("Command received: " + command);
 
-    if (command === "version"){
-        message.reply(`${package.version}`);
-    }
+    if (command === "version") message.reply(`${package.version}`);
 });
 
+//Check if streamer is live
 function TwitchCheck(){
+    //Get user data from Twitch API
     fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
         method: 'GET',
         headers: {
             'Client-ID': config.client_id,
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + twitch_token
         }
     })
+    //Convert to json
     .then(res => res.json())
+    //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
     .then(res => {
-        if(JSON.stringify(res) != '{"data":[],"pagination":{}}'){
-            lock();
-        }
-        else{
-            unlock();
-        }
+        //Streamer is live, lock
+        if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock();
+        //Streamer isnt live, unlock
+        else unlock();
     });
-    
 }
-
-//#region Lock/Unlock
 
 //Lock the discord channel
 function lock(){
+    //Check if that channel is already locked, if so, return
     if(isLocked) return;
-    isLive = true;
-    let everyone = server.roles.everyone;
+    //Edit permissions to lock the channel
     channel.overwritePermissions([
-        {id: Subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: VIPs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: vips.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']},
     ]);
+    //Set isLocked and log channel changes
     isLocked = true;
     console.log("Locked " + channel.name);
     logChannel.send("Locked " + channel.name);
@@ -112,17 +111,16 @@ function lock(){
 
 //Unlock the discord channel
 function unlock(){
+    //Check if that channel is already unlocked, if so, return
     if(!isLocked) return;
-    isLive = false;
-    let everyone = server.roles.everyone;
+    //Edit permissions to unlock the channel
     channel.overwritePermissions([
-        {id: Subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: VIPs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
+        {id: vips.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: everyone.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},
     ]);
+    //Set isLocked and log channel changes
     isLocked = false;
     console.log("Unlocked " + channel.name);
     logChannel.send("Unlocked " + channel.name);
 }
-
-//#endregion
