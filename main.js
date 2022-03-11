@@ -38,8 +38,8 @@ client.on('ready', () => {
     vips = server.roles.cache.find(role => role.name === "VIP");
     everyone = server.roles.everyone;
     //Log startup
-    console.log(`Connected to server ${server.name} as ${client.user.tag}`);
-    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}`);
+    console.log(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
@@ -49,8 +49,8 @@ client.on('disconnect', function(erMsg, code) {
     console.log('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     logChannel.send('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     //Log startup
-    console.log(`Connected to server ${server.name} as ${client.user.tag}`);
-    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}`);
+    console.log(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
 });
 
 //Check if someone sent a command
