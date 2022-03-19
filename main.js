@@ -1,8 +1,8 @@
-const Discord = require("discord.js");
+const { Client, Intents } = require('discord.js');
 const fetch = require('node-fetch');
 const config = require("./config.json");
 const package = require("./package.json");
-const client = new Discord.Client();
+const myIntents = new Intents();
 var client_id = config.client_id;
 var twitch_token;
 var server;
@@ -12,6 +12,9 @@ var isLocked;
 var subs;
 var vips;
 var everyone;
+
+myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS);
+const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] })
 
 //Set TwitchCheck to fire every checkTime ms
 setInterval(TwitchCheck, config.checkTime)
@@ -54,7 +57,7 @@ client.on('disconnect', function(erMsg, code) {
 });
 
 //Check if someone sent a command
-client.on("message", function(message) {
+client.on("messageCreate", function(message) {
     // Set prefix var
     const prefix = config.prefix;
 
