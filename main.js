@@ -101,7 +101,7 @@ function lock(){
     //Check if that channel is already locked, if so, return
     if(isLocked) return;
     //Edit permissions to lock the channel
-    channel.overwritePermissions([
+    channel.permissionOverwrites.set([
         {id: subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: vips.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']},
@@ -117,7 +117,7 @@ function unlock(){
     //Check if that channel is already unlocked, if so, return
     if(!isLocked) return;
     //Edit permissions to unlock the channel
-    channel.overwritePermissions([
+    channel.permissionOverwrites.set([
         {id: subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: vips.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
         {id: everyone.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},
