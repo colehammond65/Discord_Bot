@@ -52,8 +52,8 @@ client.on('disconnect', function(erMsg, code) {
     console.log('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     logChannel.send('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     //Log startup
-    console.log(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
-    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    console.log(`Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    logChannel.send(`Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
 });
 
 //Check if someone sent a command
@@ -63,6 +63,7 @@ client.on("messageCreate", function(message) {
 
     //Check if message is from myself
     if (message.author.bot) return;
+    if (message.channel != logChannel) return; 
 
     //Check if message has command prefix
     if (!message.content.startsWith(prefix)) return;
@@ -72,7 +73,9 @@ client.on("messageCreate", function(message) {
     const command = args.shift().toLowerCase();
     console.log("Command received: " + command);
 
-    if (command === "version") message.reply(`${package.version}`);
+    if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
+    if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
+    if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
 });
 
 //Check if streamer is live
