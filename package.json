@@ -1,11 +1,11 @@
 {
-  "name": "marshy-discord-bot",
+  "name": "promo-discord-bot",
   "version": "0.2.2",
-  "description": "Discord Bot for mmarshyellows Discord server",
+  "description": "Discord bot for locked self promo channels on DC when streaming",
   "main": "main.js",
   "repository": {
     "type": "git",
-    "url": "C:\\Users\\coled\\Repositories\\Marshy-Discord-Bot"
+    "url": "C:\\Users\\coled\\Repositories\\Promo_Discord_Bot"
   },
   "author": "Cole Hammond",
   "license": "GPL-3.0-or-later",
