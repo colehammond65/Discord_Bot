@@ -1,11 +1,11 @@
 {
 	"discord_token": "", //DC Bot token
-   	"client_id": "", //Twitch api key
-	"client_secret": "", //Twitch api key
-	"streamer": "", //twitch username
+   	"client_id": "", //Twitch api client ID
+	"client_secret": "", //Twitch api client secret
+	"streamer": "", //Twitch streamer name
 	"prefix": "!", //Command prefix
-	"serverID" : "", //DC server ID
-	"channelID" : "", //DC channel ID
-	"logChannelID" : "", //DC log channel ID
-	"checkTime" : "5000" //How often to check if streamer is live
+	"serverID" : "", //Discord server ID
+	"channelID" : "", //Discord channel ID
+	"logChannelID" : "", //Discord log channel ID
+	"checkTime" : "5000" //How often to check if streamer is live is ms (5000 = 5 seconds)
 }
