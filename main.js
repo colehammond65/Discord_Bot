@@ -9,6 +9,7 @@ var server;
 var channel;
 var logChannel;
 var isLocked;
+var ready = false;
 var readWriteRoles = new Array();
 var readOnlyRoles = new Array();
 
@@ -50,6 +51,7 @@ client.on('ready', () => {
     //Log startup
     console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
     logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
+    ready = true;
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
@@ -87,6 +89,7 @@ client.on("messageCreate", function(message) {
 
 //Check if streamer is live
 function TwitchCheck(){
+    if (!ready) return;
     //Get user data from Twitch API
     fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
         method: 'GET',
@@ -108,6 +111,7 @@ function TwitchCheck(){
 
 //Lock the discord channel
 function lock(){
+    if (!ready) return;
     //Check if that channel is already locked, if so, return
     if(isLocked) return;
     //Edit permissions to lock the channel
@@ -127,6 +131,7 @@ function lock(){
 
 //Unlock the discord channel
 function unlock(){
+    if (!ready) return;
     //Check if that channel is already unlocked, if so, return
     if(!isLocked) return; 
     //Edit permissions to unlock the channel

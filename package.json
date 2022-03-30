@@ -1,6 +1,6 @@
 {
   "name": "promo-discord-bot",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Discord bot for locked self promo channels on DC when streaming",
   "main": "main.js",
   "repository": {
