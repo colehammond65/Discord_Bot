@@ -1,4 +1,4 @@
-FROM node:17.7.1-buster-slim
+FROM node:17.8.0-bullseye-slim
 
 # Create app directory
 WORKDIR /usr/src/app
