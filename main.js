@@ -9,9 +9,8 @@ var server;
 var channel;
 var logChannel;
 var isLocked;
-var subs;
-var vips;
-var everyone;
+var readWriteRoles = new Array();
+var readOnlyRoles = new Array();
 
 myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS);
 const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] })
@@ -37,23 +36,31 @@ client.on('ready', () => {
     server = client.guilds.cache.get(config.serverID);
     channel = server.channels.cache.get(config.channelID);
     logChannel = server.channels.cache.get(config.logChannelID);
-    subs = server.roles.cache.find(role => role.name === "Twitch Subscriber");
-    vips = server.roles.cache.find(role => role.name === "VIP");
-    everyone = server.roles.everyone;
+
+    var rolesJson = config.readWriteRoleIds;
+    for(var i = 0; i < rolesJson.length; i++) {
+        readWriteRoles[i] = server.roles.cache.find(role => role.id === rolesJson[i]);
+    }
+
+    var rolesJson = config.readOnlyRoleIds;
+    for(var i = 0; i < rolesJson.length; i++) {
+        readOnlyRoles[i] = server.roles.cache.find(role => role.id === rolesJson[i]);
+    }
+
     //Log startup
-    console.log(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
-    logChannel.send(`Connected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
+    logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
     //Log disconnects and reconnect
     bot.connect();
-    console.log('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
-    logChannel.send('Bot disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+    console.log(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+    logChannel.send(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
     //Log startup
-    console.log(`Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
-    logChannel.send(`Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    console.log(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    logChannel.send(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
 });
 
 //Check if someone sent a command
@@ -104,11 +111,14 @@ function lock(){
     //Check if that channel is already locked, if so, return
     if(isLocked) return;
     //Edit permissions to lock the channel
-    channel.permissionOverwrites.set([
-        {id: subs.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: vips.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: everyone.id, deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']},
-    ]);
+
+    for(var i = 0; i < readWriteRoles.length; i++) {
+        channel.permissionOverwrites.edit([{id: readWriteRoles.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+    }
+
+    for(var i = 0; i < readOnlyRoles.length; i++) {
+        channel.permissionOverwrites.edit([{id: readOnlyRoles.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+    }
     //Set isLocked and log channel changes
     isLocked = true;
     console.log("Locked " + channel.name);
@@ -118,13 +128,14 @@ function lock(){
 //Unlock the discord channel
 function unlock(){
     //Check if that channel is already unlocked, if so, return
-    if(!isLocked) return;
+    if(!isLocked) return; 
     //Edit permissions to unlock the channel
-    channel.permissionOverwrites.set([
-        {id: subs.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: vips.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},
-        {id: everyone.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},
-    ]);
+    for(var i = 0; i < readWriteRoles.length; i++) {
+        channel.permissionOverwrites.edit([{id: readWriteRoles.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+    }
+    for(var i = 0; i < readOnlyRoles.length; i++) {
+        channel.permissionOverwrites.edit([{id: readOnlyRoles.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},]);
+    }
     //Set isLocked and log channel changes
     isLocked = false;
     console.log("Unlocked " + channel.name);
