@@ -38,14 +38,14 @@ client.on('ready', () => {
     channel = server.channels.cache.get(config.channelID);
     logChannel = server.channels.cache.get(config.logChannelID);
 
-    var rolesJson = config.readWriteRoleIds;
-    for(var i = 0; i < rolesJson.length; i++) {
-        readWriteRoles[i] = server.roles.cache.find(role => role.id === rolesJson[i]);
+    var readWriteRolesJson = config.readWriteRoleIds;
+    for(var i = 0; i < readWriteRolesJson.length; i++) {
+        readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
     }
 
-    var rolesJson = config.readOnlyRoleIds;
-    for(var i = 0; i < rolesJson.length; i++) {
-        readOnlyRoles[i] = server.roles.cache.find(role => role.id === rolesJson[i]);
+    var readOnlyRolesJson = config.readOnlyRoleIds;
+    for(var i = 0; i < readOnlyRolesJson.length; i++) {
+        readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);
     }
 
     //Log startup
@@ -115,13 +115,11 @@ function lock(){
     //Check if that channel is already locked, if so, return
     if(isLocked) return;
     //Edit permissions to lock the channel
-
     for(var i = 0; i < readWriteRoles.length; i++) {
-        channel.permissionOverwrites.edit([{id: readWriteRoles.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+        channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: false, SEND_MESSAGES: false});
     }
-
     for(var i = 0; i < readOnlyRoles.length; i++) {
-        channel.permissionOverwrites.edit([{id: readOnlyRoles.id, deny: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+        channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: false });
     }
     //Set isLocked and log channel changes
     isLocked = true;
@@ -136,10 +134,10 @@ function unlock(){
     if(!isLocked) return; 
     //Edit permissions to unlock the channel
     for(var i = 0; i < readWriteRoles.length; i++) {
-        channel.permissionOverwrites.edit([{id: readWriteRoles.id, allow: ['SEND_MESSAGES', 'VIEW_CHANNEL'],},]);
+        channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
     }
     for(var i = 0; i < readOnlyRoles.length; i++) {
-        channel.permissionOverwrites.edit([{id: readOnlyRoles.id, allow: ['VIEW_CHANNEL'], deny: ['SEND_MESSAGES']},]);
+        channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: true });
     }
     //Set isLocked and log channel changes
     isLocked = false;
