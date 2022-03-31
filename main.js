@@ -33,114 +33,146 @@ client.login(config.discord_token);
 
 //Bot startup
 client.on('ready', () => {
-    //Set vars
-    server = client.guilds.cache.get(config.serverID);
-    channel = server.channels.cache.get(config.channelID);
-    logChannel = server.channels.cache.get(config.logChannelID);
+    try {
+        //Set vars
+        server = client.guilds.cache.get(config.serverID);
+        channel = server.channels.cache.get(config.channelID);
+        logChannel = server.channels.cache.get(config.logChannelID);
 
-    var readWriteRolesJson = config.readWriteRoleIds;
-    for(var i = 0; i < readWriteRolesJson.length; i++) {
-        readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
+        var readWriteRolesJson = config.readWriteRoleIds;
+        for(var i = 0; i < readWriteRolesJson.length; i++) {
+            readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
+        }
+
+        var readOnlyRolesJson = config.readOnlyRoleIds;
+        for(var i = 0; i < readOnlyRolesJson.length; i++) {
+            readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);
+        }
+
+        //Log startup
+        console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
+        logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
+        ready = true;
+        }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
     }
-
-    var readOnlyRolesJson = config.readOnlyRoleIds;
-    for(var i = 0; i < readOnlyRolesJson.length; i++) {
-        readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);
-    }
-
-    //Log startup
-    console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
-    logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
-    ready = true;
 });
 
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
-    //Log disconnects and reconnect
-    bot.connect();
-    console.log(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
-    logChannel.send(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
-    //Log startup
-    console.log(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
-    logChannel.send(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    try {
+        //Log disconnects and reconnect
+        bot.connect();
+        console.log(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+        logChannel.send(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+        //Log startup
+        console.log(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+        logChannel.send(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
 });
 
 //Check if someone sent a command
 client.on("messageCreate", function(message) {
-    // Set prefix var
-    const prefix = config.prefix;
+    try {
+        // Set prefix var
+        const prefix = config.prefix;
 
-    //Check if message is from myself
-    if (message.author.bot) return;
-    if (message.channel != logChannel) return; 
+        //Check if message is from myself
+        if (message.author.bot) return;
+        if (message.channel != logChannel) return; 
 
-    //Check if message has command prefix
-    if (!message.content.startsWith(prefix)) return;
+        //Check if message has command prefix
+        if (!message.content.startsWith(prefix)) return;
 
-    const commandBody = message.content.slice(prefix.length);
-    const args = commandBody.split(' ');
-    const command = args.shift().toLowerCase();
-    console.log("Command received: " + command);
+        const commandBody = message.content.slice(prefix.length);
+        const args = commandBody.split(' ');
+        const command = args.shift().toLowerCase();
+        console.log("Command received: " + command);
 
-    if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
-    if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
-    if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
+        if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
+        if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
+        if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
 });
 
 //Check if streamer is live
 function TwitchCheck(){
-    if (!ready) return;
-    //Get user data from Twitch API
-    fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
-        method: 'GET',
-        headers: {
-            'Client-ID': config.client_id,
-            'Authorization': 'Bearer ' + twitch_token
-        }
-    })
-    //Convert to json
-    .then(res => res.json())
-    //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
-    .then(res => {
-        //Streamer is live, lock
-        if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock();
-        //Streamer isnt live, unlock
-        else unlock();
-    });
+    try {
+        if (!ready) return;
+        //Get user data from Twitch API
+        fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
+            method: 'GET',
+            headers: {
+                'Client-ID': config.client_id,
+                'Authorization': 'Bearer ' + twitch_token
+            }
+        })
+        //Convert to json
+        .then(res => res.json())
+        //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
+        .then(res => {
+            //Streamer is live, lock
+            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock();
+            //Streamer isnt live, unlock
+            else unlock();
+        });
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
 }
 
 //Lock the discord channel
 function lock(){
-    if (!ready) return;
-    //Check if that channel is already locked, if so, return
-    if(isLocked) return;
-    //Edit permissions to lock the channel
-    for(var i = 0; i < readWriteRoles.length; i++) {
-        channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: false, SEND_MESSAGES: false});
+    try {
+        if (!ready) return;
+        if (!isLocked) return; 
+        if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
+        if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
+        //Edit permissions to lock the channel
+        for(var i = 0; i < readWriteRoles.length; i++) {
+            channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: false, SEND_MESSAGES: false});
+        }
+        for(var i = 0; i < readOnlyRoles.length; i++) {
+            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: false });
+        }
+        //Set isLocked and log channel changes
+        isLocked = true;
+        console.log("Locked " + channel.name);
+        logChannel.send("Locked " + channel.name);
     }
-    for(var i = 0; i < readOnlyRoles.length; i++) {
-        channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: false });
+    catch (e) {
+        console.log(e); // pass exception object to error handler
     }
-    //Set isLocked and log channel changes
-    isLocked = true;
-    console.log("Locked " + channel.name);
-    logChannel.send("Locked " + channel.name);
 }
 
 //Unlock the discord channel
 function unlock(){
-    if (!ready) return;
-    //Check if that channel is already unlocked, if so, return
-    if(!isLocked) return; 
-    //Edit permissions to unlock the channel
-    for(var i = 0; i < readWriteRoles.length; i++) {
-        channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
+    try {
+        if (!ready) return;
+        if (!isLocked) return; 
+        if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
+        if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
+        //Edit permissions to unlock the channel
+        for(var i = 0; i < readWriteRoles.length; i++) {
+            channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
+        }
+        for(var i = 0; i < readOnlyRoles.length; i++) {
+            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: true });
+        }
+        //Set isLocked and log channel changes
+        isLocked = false;
+        console.log("Unlocked " + channel.name);
+        logChannel.send("Unlocked " + channel.name);
     }
-    for(var i = 0; i < readOnlyRoles.length; i++) {
-        channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: true });
+    catch (e) {
+        console.log(e); // pass exception object to error handler
     }
-    //Set isLocked and log channel changes
-    isLocked = false;
-    console.log("Unlocked " + channel.name);
-    logChannel.send("Unlocked " + channel.name);
 }
