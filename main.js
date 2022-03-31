@@ -8,7 +8,7 @@ var twitch_token;
 var server;
 var channel;
 var logChannel;
-var isLocked;
+var isLocked = false;
 var ready = false;
 var readWriteRoles = new Array();
 var readOnlyRoles = new Array();
@@ -133,7 +133,7 @@ function TwitchCheck(){
 function lock(){
     try {
         if (!ready) return;
-        if (!isLocked) return; 
+        if (isLocked) return;
         if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
         //Edit permissions to lock the channel
