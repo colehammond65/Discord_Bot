@@ -34,21 +34,6 @@ client.login(config.discord_token);
 //Bot startup
 client.on('ready', () => {
     try {
-        try {
-            JSON.parse(config);
-        } catch (e) {
-            console.log("Config file is invalid, please check the config.json file");
-        }
-        try {
-            JSON.parse(config.readWriteRoleIds);
-        } catch (e) {
-            console.log("readWriteRoleIds file is invalid, please check the config.json file");
-        }
-        try {
-            JSON.parse(config.readOnlyRoleIds);
-        } catch (e) {
-            console.log("readOnlyRoleIds file is invalid, please check the config.json file");
-        }
         //Set vars
         server = client.guilds.cache.get(config.serverID);
         channel = server.channels.cache.get(config.channelID);
