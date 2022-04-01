@@ -42,12 +42,12 @@ client.on('ready', () => {
         try {
             JSON.parse(config.readWriteRoleIds);
         } catch (e) {
-            console.log("Config file is invalid, please check the config.json file");
+            console.log("readWriteRoleIds file is invalid, please check the config.json file");
         }
         try {
             JSON.parse(config.readOnlyRoleIds);
         } catch (e) {
-            console.log("Config file is invalid, please check the config.json file");
+            console.log("readOnlyRoleIds file is invalid, please check the config.json file");
         }
         //Set vars
         server = client.guilds.cache.get(config.serverID);
