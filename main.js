@@ -1,32 +1,24 @@
 const { Client, Intents } = require('discord.js');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const jsonfile = require('jsonfile')
 const config = require("./config.json");
+const RolesJson = "./roles.json";
 const package = require("./package.json");
-const myIntents = new Intents();
 var client_id = config.client_id;
 var twitch_token;
 var server;
 var channel;
 var logChannel;
+var supportChannel;
 var isLocked = false;
 var ready = false;
 var readWriteRoles = new Array();
 var readOnlyRoles = new Array();
+var serverAccessRoleId = config.serverAccessRoleId;
 
-myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MEMBERS);
-const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] })
-
-//Set TwitchCheck to fire every checkTime ms
-setInterval(TwitchCheck, config.checkTime)
-
-//Login to Twitch API and get oauth2 token
-fetch('https://id.twitch.tv/oauth2/token?client_id=' + client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
-    method: 'POST',
-})
-.then(res => res.json())
-.then(res => {
-    twitch_token = res.access_token;
-});
+//#region DJS Setup
+const client = new Client({ intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES"], partials: ["USER", "CHANNEL", "GUILD_MEMBER", "MESSAGE", "REACTION", "GUILD_SCHEDULED_EVENT"] });
 
 //Login to DiscordAPI
 client.login(config.discord_token);
@@ -38,6 +30,7 @@ client.on('ready', () => {
         server = client.guilds.cache.get(config.serverID);
         channel = server.channels.cache.get(config.channelID);
         logChannel = server.channels.cache.get(config.logChannelID);
+        supportChannel = server.channels.cache.get(config.supportChannelID);
 
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
@@ -47,6 +40,12 @@ client.on('ready', () => {
         var readOnlyRolesJson = config.readOnlyRoleIds;
         for(var i = 0; i < readOnlyRolesJson.length; i++) {
             readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);
+        }
+
+        //check if roles.json exists
+        if (!fs.existsSync(RolesJson)) {
+            console.log("Roles.json does not exist, creating...");
+            jsonfile.writeFileSync(RolesJson, {"users":[]});
         }
 
         //Log startup
@@ -98,8 +97,24 @@ client.on("messageCreate", function(message) {
         if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
     }
     catch (e) {
-        console.log(e); // pass exception object to error handler
+        console.log(e); // pass exception object to error log
     }
+});
+
+//#endregion
+
+//#region Twitch Checker
+
+//Set TwitchCheck to fire every checkTime ms
+setInterval(TwitchCheck, config.checkTime)
+
+//Login to Twitch API and get oauth2 token
+fetch('https://id.twitch.tv/oauth2/token?client_id=' + client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
+    method: 'POST',
+})
+.then(res => res.json())
+.then(res => {
+    twitch_token = res.access_token;
 });
 
 //Check if streamer is live
@@ -176,3 +191,74 @@ function unlock(){
         console.log(e); // pass exception object to error handler
     }
 }
+
+//#endregion
+
+//#region Expiry Roles
+
+//Set ExpiryCheck to fire every checkTime ms
+setInterval(ExpiryCheck, config.checkTime)
+
+//Return unix time seconds
+function UnixTimeSeconds() {
+    return Math.floor(Date.now() / 1000);
+}
+
+client.on("guildMemberUpdate", (oldMember, newMember) => {
+    // Old roles Collection is smaller in size than the new one. A role has been added.
+    if (oldMember.roles.cache.size < newMember.roles.cache.size) {
+        // Looping through the role and checking which role was added.
+        newMember.roles.cache.forEach(role => {
+            if (!oldMember.roles.cache.has(role.id)) {
+                if(role == serverAccessRoleId){
+                    //User was added to Server Access Role
+                    supportChannel.send(newMember.user.tag + " You have been added to the server whitelist, Please check #smp-info for server details");
+                    //Create json array with user id and current time
+                    var expiryTime = UnixTimeSeconds() + 2592000;
+                    var user = {
+                        "id": newMember.id, 
+                        "time": expiryTime 
+                    };
+                    //cache current roles.json and parse
+                    var roles = JSON.parse(fs.readFileSync("./roles.json"));
+                    //Add user to json
+                    roles.users.push(user);
+                    console.log(newMember.user.tag + " was added to Server Access Role")
+                    //Write json to file
+                    fs.writeFileSync("./roles.json", JSON.stringify(roles));
+                    console.log("roles.json updated");
+                }
+            }
+        });
+    }
+});
+
+async function ExpiryCheck(){
+    try {
+        if (!ready) return;
+        //cache current roles.json and parse
+        var roles = JSON.parse(fs.readFileSync("./roles.json"));
+        //Loop through users in roles.json
+        for(var i = 0; i < roles.users.length; i++) {
+            //Check if user has been in server for more than expiryTime
+            if(UnixTimeSeconds() > roles.users[i].time){
+                //User has expired, remove from roles.json
+                //remove role from dc user
+                var user = await server.members.fetch(roles.users[i].id);
+                user.roles.remove(serverAccessRoleId);
+                console.log("Removed " + user.user.tag + " from Server Access Role");
+                //cache current roles.json and parse
+                var roles = JSON.parse(fs.readFileSync("./roles.json"));
+                //remove user from roles.json
+                roles.users.splice(i, 1);
+                //Write json to file
+                fs.writeFileSync("./roles.json", JSON.stringify(roles));
+                console.log("roles.json updated");
+            }
+        }
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+

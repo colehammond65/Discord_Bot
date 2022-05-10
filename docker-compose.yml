@@ -1,8 +1,8 @@
 version: "3"
 services:
   Promo_Discord_Bot:
-    image: encrypt65/promo_discord_bot
-    container_name: Promo_Discord_Bot
+    image: encrypt65/Discord_bot
+    container_name: Discord_Bot
     restart: unless-stopped
     volumes:
       - ./config.json:/usr/src/app/config.json

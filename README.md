@@ -1,8 +1,8 @@
-# Promo Discord Bot
+# Discord Bot
  Discord bot for locking self promo channels on DC when streaming
 
 ## About
-Promo Discord Bot is a discord bot for streamer, it allows you to have a promo channel on your community Discord server for other people in your community to advertise themself in, while locking that channel so it cant be seen while you are live on Twitch
+Discord Bot is a discord bot for streamers
 
 ## Installation
 

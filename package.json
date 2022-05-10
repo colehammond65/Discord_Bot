@@ -1,15 +1,16 @@
 {
-  "name": "promo-discord-bot",
-  "version": "1.0.2",
-  "description": "Discord bot for locked self promo channels on DC when streaming",
+  "name": "Discord-bot",
+  "version": "1.1.0",
+  "description": "Discord bot for streamers",
   "main": "main.js",
   "repository": {
     "type": "git",
-    "url": "C:\\Users\\coled\\Repositories\\Promo_Discord_Bot"
+    "url": "C:\\Users\\coled\\Repositories\\Discord_Bot"
   },
   "author": "Cole Hammond",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "discord.js": "^13.6.0"
+    "discord.js": "^13.6.0",
+    "jsonfile": "^6.1.0"
   }
 }
