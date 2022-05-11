@@ -212,7 +212,7 @@ client.on("guildMemberUpdate", (oldMember, newMember) => {
             if (!oldMember.roles.cache.has(role.id)) {
                 if(role == serverAccessRoleId){
                     //User was added to Server Access Role
-                    supportChannel.send(newMember.user.tag + " You have been added to the server whitelist, Please check #smp-info for server details");
+                    supportChannel.send("<@" + newMember.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
                     //Create json array with user id and current time
                     var expiryTime = UnixTimeSeconds() + 2592000;
                     var user = {
