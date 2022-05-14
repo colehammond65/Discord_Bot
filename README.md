@@ -25,14 +25,14 @@ Discord Bot is a discord bot for streamers
 ### Setting up the bot
 
 #### Docker (Recommended)
-NOTE: This assume you already have [docker](https://www.docker.com/) installed and configured
+NOTE: This assumes you already have [docker](https://www.docker.com/) installed and configured
 1. Create a directory where you want to run the bot from 
 2. Create a config.json file for the bot to use, check the config example file to see the formatting
 3. Copy `docker-compose.yml` to your Directory
 4. Run `docker-compose up -d`
 
 #### Node
-NOTE: This assume you already have [node](https://nodejs.org/en/) installed and configured
+NOTE: This assumes you already have [node](https://nodejs.org/en/) installed and configured
 1. Download the Project files and extract them to the directory you want to run the bot form
 2. Create a config.json file for the bot to use, check the config example file to see the formatting
 3. Open command prompt and change to the directory where you have the bot `cd /d c:\path\to\bot`

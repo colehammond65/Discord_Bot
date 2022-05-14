@@ -58,6 +58,8 @@ client.on('ready', () => {
     }
 });
 
+//#region Misc
+
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
     try {
@@ -73,6 +75,10 @@ client.on('disconnect', function(erMsg, code) {
         console.log(e); // pass exception object to error handler
     }
 });
+
+//#endregion
+
+//#region Commands
 
 //Check if someone sent a command
 client.on("messageCreate", function(message) {
@@ -201,40 +207,46 @@ setInterval(ExpiryCheck, config.checkTime)
 
 //Return unix time seconds
 function UnixTimeSeconds() {
-    return Math.floor(Date.now() / 1000);
+    try {
+        return Math.floor(Date.now() / 1000);
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
 }
 
 client.on("guildMemberUpdate", (oldMember, newMember) => {
-    // Old roles Collection is smaller in size than the new one. A role has been added.
-    if (oldMember.roles.cache.size < newMember.roles.cache.size) {
-        // Looping through the role and checking which role was added.
-        newMember.roles.cache.forEach(role => {
-            if (!oldMember.roles.cache.has(role.id)) {
-                if(role == serverAccessRoleId){
+    try{
+        if (oldMember.roles.cache.has(serverAccessRoleId)) {return}
+        // Old roles Collection is smaller in size than the new one. A role has been added.
+        if (oldMember.roles.cache.size < newMember.roles.cache.size) {
+            // Looping through the role and checking which role was added.
+            newMember.roles.cache.forEach(role => {
+                if(role.id == serverAccessRoleId){
                     //User was added to Server Access Role
                     supportChannel.send("<@" + newMember.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
+                    console.log(newMember.user.tag + " was added to Server Access Role");
                     //Create json array with user id and current time
                     var expiryTime = UnixTimeSeconds() + 2592000;
-                    var user = {
-                        "id": newMember.id, 
-                        "time": expiryTime 
-                    };
+                    var user = {"id": newMember.id, "time": expiryTime};
                     //cache current roles.json and parse
                     var roles = JSON.parse(fs.readFileSync("./roles.json"));
                     //Add user to json
                     roles.users.push(user);
-                    console.log(newMember.user.tag + " was added to Server Access Role")
                     //Write json to file
                     fs.writeFileSync("./roles.json", JSON.stringify(roles));
-                    console.log("roles.json updated");
                 }
-            }
-        });
+            });
+        }
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
     }
 });
 
 async function ExpiryCheck(){
     try {
+        //check if the bot is ready
         if (!ready) return;
         //cache current roles.json and parse
         var roles = JSON.parse(fs.readFileSync("./roles.json"));
@@ -242,18 +254,14 @@ async function ExpiryCheck(){
         for(var i = 0; i < roles.users.length; i++) {
             //Check if user has been in server for more than expiryTime
             if(UnixTimeSeconds() > roles.users[i].time){
-                //User has expired, remove from roles.json
-                //remove role from dc user
+                //Time has expired, remove user from server access
                 var user = await server.members.fetch(roles.users[i].id);
                 user.roles.remove(serverAccessRoleId);
-                console.log("Removed " + user.user.tag + " from Server Access Role");
-                //cache current roles.json and parse
-                var roles = JSON.parse(fs.readFileSync("./roles.json"));
                 //remove user from roles.json
                 roles.users.splice(i, 1);
                 //Write json to file
                 fs.writeFileSync("./roles.json", JSON.stringify(roles));
-                console.log("roles.json updated");
+                console.log("Removed " + user.user.tag + " from Server Access Role \n roles.json updated");
             }
         }
     }
@@ -262,3 +270,4 @@ async function ExpiryCheck(){
     }
 }
 
+//#endregion
