@@ -217,9 +217,8 @@ function UnixTimeSeconds() {
 
 client.on("guildMemberUpdate", (oldMember, newMember) => {
     try{
-        if (oldMember.roles.cache.has(serverAccessRoleId)) {return}
-        // Old roles Collection is smaller in size than the new one. A role has been added.
-        if (oldMember.roles.cache.size < newMember.roles.cache.size) {
+        if (oldMember.roles.cache.size >= newMember.roles.cache.size) {return};
+        if (!oldMember.roles.cache.has(serverAccessRoleId) && newMember.roles.cache.has(serverAccessRoleId)) {
             // Looping through the role and checking which role was added.
             newMember.roles.cache.forEach(role => {
                 if(role.id == serverAccessRoleId){
@@ -237,6 +236,9 @@ client.on("guildMemberUpdate", (oldMember, newMember) => {
                     fs.writeFileSync("./roles.json", JSON.stringify(roles));
                 }
             });
+        }
+        else{
+            return;
         }
     }
     catch (e) {
