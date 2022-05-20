@@ -10,7 +10,6 @@
   "author": "Cole Hammond",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "discord.js": "^13.6.0",
-    "jsonfile": "^6.1.0"
+    "discord.js": "^13.6.0"
   }
 }

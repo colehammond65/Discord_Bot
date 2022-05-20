@@ -1,7 +1,6 @@
 const { Client, Intents } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
-const jsonfile = require('jsonfile')
 const config = require("./config.json");
 const RolesJson = "./roles.json";
 const package = require("./package.json");
@@ -45,7 +44,8 @@ client.on('ready', () => {
         //check if roles.json exists
         if (!fs.existsSync(RolesJson)) {
             console.log("Roles.json does not exist, creating...");
-            jsonfile.writeFileSync(RolesJson, {"users":[]});
+            var setupString = '{"users":[]}';
+            fs.writeFileSync(RolesJson, setupString);
         }
 
         //Log startup
