@@ -231,8 +231,8 @@ client.on("guildMemberUpdate", (oldMember, newMember) => {
             return;
         } else if (!oldHas && newHas) {
             //User was added to Server Access Role
-            supportChannel.send("<@" + newMember.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
-            logChannel.send( newMember.user.id + " was have been added to the server whitelist");
+            //supportChannel.send("<@" + newMember.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
+            // logChannel.send( newMember.user.id + " was have been added to the server whitelist");
             console.log(newMember.user.tag + " was added to Server Access Role");
             console.log("Old Roles: " + oldRoles.toString());
             console.log("New Roles: " + newRoles.toString());
