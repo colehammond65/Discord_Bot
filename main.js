@@ -222,7 +222,8 @@ function AddUserToWhitelist(message){
         if (!ready) return;
 
         var member = message.mentions.members.first();
-        member.addrole(serverAccessRoleId);
+        role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
+        member.addrole(role);
 
         //User was added to Server Access Role
         supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
@@ -238,7 +239,7 @@ function AddUserToWhitelist(message){
 
         //Add user to json
         roles.users.push(user);
-        
+
         //Write json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
     }
