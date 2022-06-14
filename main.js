@@ -88,9 +88,9 @@ client.on('disconnect', function(erMsg, code) {
 client.on("messageCreate", function(message) {
     try {
         if (!ready) return;
+
         //Check if message is from myself
         if (message.author.bot) return;
-        if (message.channel != logChannel) return; 
 
         //Check if message has command prefix
         if (!message.content.startsWith(prefix)) return;
@@ -223,8 +223,10 @@ function AddUserToWhitelist(message){
     try {
         if (!ready) return;
 
+        if (!message.member.roles.has('720572310393847848')) return;
+
         var member = message.mentions.members.first();
-        role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
+        var role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
         member.roles.add(role);
 
         //User was added to Server Access Role
@@ -244,6 +246,8 @@ function AddUserToWhitelist(message){
 
         //Write json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
+
+        message.delete(1000); //Supposed to delete message
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
