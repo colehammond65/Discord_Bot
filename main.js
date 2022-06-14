@@ -30,6 +30,9 @@ client.on('ready', () => {
         channel = server.channels.cache.get(config.channelID);
         logChannel = server.channels.cache.get(config.logChannelID);
         supportChannel = server.channels.cache.get(config.supportChannelID);
+        
+        // Set prefix var
+        const prefix = config.prefix;
 
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
@@ -83,9 +86,6 @@ client.on('disconnect', function(erMsg, code) {
 //Check if someone sent a command
 client.on("messageCreate", function(message) {
     try {
-        // Set prefix var
-        const prefix = config.prefix;
-
         //Check if message is from myself
         if (message.author.bot) return;
         if (message.channel != logChannel) return; 
@@ -101,6 +101,7 @@ client.on("messageCreate", function(message) {
         if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
         if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
         if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
+        if (command === "whitelist") AddUserToWhitelist(message);
     }
     catch (e) {
         console.log(e); // pass exception object to error log
@@ -215,7 +216,39 @@ function UnixTimeSeconds() {
     }
 }
 
-client.on("guildMemberUpdate", (oldMember, newMember) => {
+
+function AddUserToWhitelist(message){
+    try {
+        if (!ready) return;
+
+        var member = message.mentions.members.first();
+        member.addrole(serverAccessRoleId);
+
+        //User was added to Server Access Role
+        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
+        logChannel.send( member.user.id + " was have been added to the server whitelist");
+        console.log(member.user.tag + " was added to Server Access Role");
+
+        //Create json array with user id and current time
+        var expiryTime = UnixTimeSeconds() + 2592000;
+        var user = {"id": member.id, "time": expiryTime};
+
+        //cache current roles.json and parse
+        var roles = JSON.parse(fs.readFileSync("./roles.json"));
+
+        //Add user to json
+        roles.users.push(user);
+        
+        //Write json to file
+        fs.writeFileSync("./roles.json", JSON.stringify(roles));
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+
+
+/* client.on("guildMemberUpdate", (oldMember, newMember) => {
     try{
         // Roles
         const oldRoles = oldMember.roles.cache,
@@ -248,7 +281,7 @@ client.on("guildMemberUpdate", (oldMember, newMember) => {
     catch (e) {
         console.log(e); // pass exception object to error handler
     }
-});
+}); */
 
 async function ExpiryCheck(){
     try {
