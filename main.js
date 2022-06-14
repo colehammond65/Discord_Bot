@@ -223,7 +223,7 @@ function AddUserToWhitelist(message){
     try {
         if (!ready) return;
 
-        if (!message.member.roles.has('720572310393847848')) return;
+        if (!message.member.roles.cache.has('720572310393847848')) return;
 
         var member = message.mentions.members.first();
         var role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
