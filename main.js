@@ -12,6 +12,7 @@ var logChannel;
 var supportChannel;
 var isLocked = false;
 var ready = false;
+var prefix;
 var readWriteRoles = new Array();
 var readOnlyRoles = new Array();
 var serverAccessRoleId = config.serverAccessRoleId;
@@ -32,7 +33,7 @@ client.on('ready', () => {
         supportChannel = server.channels.cache.get(config.supportChannelID);
         
         // Set prefix var
-        const prefix = config.prefix;
+        prefix = config.prefix;
 
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
@@ -86,6 +87,7 @@ client.on('disconnect', function(erMsg, code) {
 //Check if someone sent a command
 client.on("messageCreate", function(message) {
     try {
+        if (!ready) return;
         //Check if message is from myself
         if (message.author.bot) return;
         if (message.channel != logChannel) return; 
