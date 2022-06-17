@@ -230,7 +230,7 @@ function AddUserToWhitelist(message){
         member.roles.add(role);
 
         //User was added to Server Access Role
-        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
+        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#851348122746880000> for server details");
         logChannel.send( member.user.id + " was have been added to the server whitelist");
         console.log(member.user.tag + " was added to Server Access Role");
 
