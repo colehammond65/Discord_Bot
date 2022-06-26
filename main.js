@@ -104,6 +104,7 @@ client.on("messageCreate", function(message) {
         if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
         if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
         if (command === "whitelist") AddUserToWhitelist(message);
+        if (command === "test") UnixTimeSeconds();
     }
     catch (e) {
         console.log(e); // pass exception object to error log
@@ -211,7 +212,8 @@ setInterval(ExpiryCheck, config.checkTime)
 //Return unix time seconds
 function UnixTimeSeconds() {
     try {
-        return Math.floor(Date.now() / 1000);
+        var UnixTimeSeconds = Math.floor(Date.now());
+        return UnixTimeSeconds
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -221,6 +223,7 @@ function UnixTimeSeconds() {
 
 function AddUserToWhitelist(message){
     try {
+        const dateObject = new Date(UnixTimeSeconds);
         if (!ready) return;
 
         if (!message.member.roles.cache.has('720572310393847848')) return;
@@ -231,11 +234,11 @@ function AddUserToWhitelist(message){
 
         //User was added to Server Access Role
         supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#851348122746880000> for server details");
-        logChannel.send( member.user.id + " was have been added to the server whitelist");
-        console.log(member.user.tag + " was added to Server Access Role");
+        logChannel.send(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
+        console.log(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
 
         //Create json array with user id and current time
-        var expiryTime = UnixTimeSeconds() + 2592000;
+        var expiryTime = UnixTimeSeconds() + 2592000000;
         var user = {"id": member.id, "time": expiryTime};
 
         //cache current roles.json and parse
@@ -254,54 +257,21 @@ function AddUserToWhitelist(message){
     }
 }
 
-
-/* client.on("guildMemberUpdate", (oldMember, newMember) => {
-    try{
-        // Roles
-        const oldRoles = oldMember.roles.cache,
-        newRoles = newMember.roles.cache;
-
-        // Has Role?
-        const oldHas = oldRoles.has(serverAccessRoleId),
-        newHas = newRoles.has(serverAccessRoleId);
-
-        // Check if removed or added
-        if (oldHas && !newHas) {
-            // Role has been removed
-            return;
-        } else if (!oldHas && newHas) {
-            //User was added to Server Access Role
-            //supportChannel.send("<@" + newMember.user.id + "> You have been added to the server whitelist, Please check <#864459639843717160> for server details");
-            // logChannel.send( newMember.user.id + " was have been added to the server whitelist");
-            console.log(newMember.user.tag + " was added to Server Access Role");
-            //Create json array with user id and current time
-            var expiryTime = UnixTimeSeconds() + 2592000;
-            var user = {"id": newMember.id, "time": expiryTime};
-            //cache current roles.json and parse
-            var roles = JSON.parse(fs.readFileSync("./roles.json"));
-            //Add user to json
-            roles.users.push(user);
-            //Write json to file
-            fs.writeFileSync("./roles.json", JSON.stringify(roles));
-        }
-    }
-    catch (e) {
-        console.log(e); // pass exception object to error handler
-    }
-}); */
-
 async function ExpiryCheck(){
+    var user;
+    var roles = JSON.parse(fs.readFileSync("./roles.json"));
+    var i;
     try {
         //check if the bot is ready
         if (!ready) return;
         //cache current roles.json and parse
-        var roles = JSON.parse(fs.readFileSync("./roles.json"));
         //Loop through users in roles.json
-        for(var i = 0; i < roles.users.length; i++) {
+        for(i= 0; i < roles.users.length; i++) {
             //Check if user has been in server for more than expiryTime
             if(UnixTimeSeconds() > roles.users[i].time){
                 //Time has expired, remove user from server access
-                var user = await server.members.fetch(roles.users[i].id);
+                user = await server.members.fetch(roles.users[i].id);
+                console.log(user);
                 user.roles.remove(serverAccessRoleId);
                 //remove user from roles.json
                 roles.users.splice(i, 1);
@@ -312,7 +282,11 @@ async function ExpiryCheck(){
         }
     }
     catch (e) {
-        console.log(e); // pass exception object to error handler
+        //console.log(e); // pass exception object to error handler
+        roles.users.splice(i, 1);
+        //Write json to file
+        fs.writeFileSync("./roles.json", JSON.stringify(roles));
+        
     }
 }
 
