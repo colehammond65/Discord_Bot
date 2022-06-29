@@ -271,7 +271,6 @@ async function ExpiryCheck(){
             if(UnixTimeSeconds() > roles.users[i].time){
                 //Time has expired, remove user from server access
                 user = await server.members.fetch(roles.users[i].id);
-                console.log(user);
                 user.roles.remove(serverAccessRoleId);
                 //remove user from roles.json
                 roles.users.splice(i, 1);
