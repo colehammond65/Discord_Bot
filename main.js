@@ -308,10 +308,6 @@ function Talk(message){
 
         letsTalkChannel.permissionOverwrites.set([
             {
-                id: server.id,
-                deny: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
                 id: 720572310393847848,
                 allow: [Permissions.FLAGS.VIEW_CHANNEL],
             },
