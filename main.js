@@ -10,6 +10,7 @@ var server;
 var channel;
 var logChannel;
 var supportChannel;
+var letsTalkChannel;
 var isLocked = false;
 var ready = false;
 var prefix;
@@ -31,6 +32,7 @@ client.on('ready', () => {
         channel = server.channels.cache.get(config.channelID);
         logChannel = server.channels.cache.get(config.logChannelID);
         supportChannel = server.channels.cache.get(config.supportChannelID);
+        letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
         
         // Set prefix var
         prefix = config.prefix;
@@ -100,11 +102,11 @@ client.on("messageCreate", function(message) {
         const command = args.shift().toLowerCase();
         console.log("Command received: " + command);
 
-        if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
+        if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`)
         if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
         if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
-        if (command === "whitelist") AddUserToWhitelist(message);
-        if (command === "test") UnixTimeSeconds();
+        if (command === "whitelist") AddUserToWhitelist(message)
+        if (command === "talk") Talk(message)
     }
     catch (e) {
         console.log(e); // pass exception object to error log
@@ -290,3 +292,44 @@ async function ExpiryCheck(){
 }
 
 //#endregion
+
+//#region Talk channel
+
+function Talk(message){
+    try {
+        if (!ready) return;
+        async function clear() {
+            msg.delete();
+            const fetched = await msg.channel.fetchMessages({limit: 99});
+            msg.channel.bulkDelete(fetched);
+        }
+
+        var member = message.mentions.members.first();
+
+        letsTalkChannel.permissionOverwrites.set([
+            {
+                id: guild.id,
+                deny: [Permissions.FLAGS.VIEW_CHANNEL],
+            },
+            {
+                id: 720572310393847848,
+                allow: [Permissions.FLAGS.VIEW_CHANNEL],
+            },
+            {
+                id: 720605380257906758,
+                allow: [Permissions.FLAGS.VIEW_CHANNEL],
+            },
+            {
+                id: 720637902555447348,
+                allow: [Permissions.FLAGS.VIEW_CHANNEL],
+            },
+            {
+                id: member.id,
+                allow: [Permissions.FLAGS.VIEW_CHANNEL],
+            }
+        ]);
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}

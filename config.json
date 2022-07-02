@@ -16,5 +16,6 @@
 			"2345678901"
 	],
 	"serverAccessRoleId": "3456789012", //role that can access the server
-	"supportChannelID": "4567890123" //channel that will be used for support
+	"supportChannelID": "4567890123", //channel that will be used for support
+	"letsTalkChannelID": "4567890123" //channel that will be used for support
 }
