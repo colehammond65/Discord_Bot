@@ -225,7 +225,7 @@ function UnixTimeSeconds() {
 
 function AddUserToWhitelist(message){
     try {
-        const dateObject = new Date(UnixTimeSeconds);
+        const dateObject = new Date(UnixTimeSeconds());
         if (!ready) return;
 
         if (!message.member.roles.cache.has('720572310393847848')) return;
@@ -278,7 +278,7 @@ async function ExpiryCheck(){
                 roles.users.splice(i, 1);
                 //Write json to file
                 fs.writeFileSync("./roles.json", JSON.stringify(roles));
-                console.log("Removed " + user.user.tag + " from Server Access Role \n roles.json updated");
+                console.log("Removed " + user.user.tag + " from Server Access Role \nRoles.json updated");
             }
         }
     }
