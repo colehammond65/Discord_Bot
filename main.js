@@ -55,8 +55,8 @@ client.on('ready', () => {
         }
 
         //Log startup
-        console.log("Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}");
-        logChannel.send("Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}");
+        console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
+        logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         ready = true;
         }
     catch (e) {
@@ -71,11 +71,11 @@ client.on('disconnect', function(erMsg, code) {
     try {
         //Log disconnects and reconnect
         bot.connect();
-        console.log("Promo Discord Bot - version ${package.version} disconnected from Discord");
-        logChannel.send("Promo Discord Bot - version ${package.version} disconnected from Discord");
+        console.log(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+        logChannel.send(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
         //Log startup
-        console.log("Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}");
-        logChannel.send("Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}");
+        console.log(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
+        logChannel.send(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -225,7 +225,7 @@ function UnixTimeSeconds() {
 
 function AddUserToWhitelist(message){
     try {
-        const dateObject = new Date(UnixTimeSeconds());
+        const dateObject = new Date(UnixTimeSeconds);
         if (!ready) return;
 
         if (!message.member.roles.cache.has('720572310393847848')) return;
@@ -278,12 +278,12 @@ async function ExpiryCheck(){
                 roles.users.splice(i, 1);
                 //Write json to file
                 fs.writeFileSync("./roles.json", JSON.stringify(roles));
-                console.log("Removed " + user.user.tag + " from Server Access Role");
-                console.log("roles.json updated");
+                console.log("Removed " + user.user.tag + " from Server Access Role \n roles.json updated");
             }
         }
     }
     catch (e) {
+        //console.log(e); // pass exception object to error handler
         roles.users.splice(i, 1);
         //Write json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
@@ -298,7 +298,14 @@ async function ExpiryCheck(){
 function Talk(message){
     try {
         if (!ready) return;
+        async function clear() {
+            msg.delete();
+            const fetched = await msg.channel.fetchMessages({limit: 99});
+            msg.channel.bulkDelete(fetched);
+        }
+
         var member = message.mentions.members.first();
+
         letsTalkChannel.permissionOverwrites.set([
             {
                 id: 720572310393847848,
