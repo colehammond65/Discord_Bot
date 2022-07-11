@@ -1,4 +1,4 @@
-const { Client, Intents } = require('discord.js');
+const { Client, MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const config = require("./config.json");
@@ -146,7 +146,7 @@ function TwitchCheck(){
         //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
         .then(res => {
             //Streamer is live, lock
-            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock();
+            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock(res);
             //Streamer isnt live, unlock
             else unlock();
         });
@@ -174,6 +174,8 @@ function lock(){
         isLocked = true;
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
+
+        
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -181,7 +183,7 @@ function lock(){
 }
 
 //Unlock the discord channel
-function unlock(){
+function unlock(json){
     try {
         if (!ready) return;
         if (!isLocked) return; 
@@ -198,6 +200,18 @@ function unlock(){
         isLocked = false;
         console.log("Unlocked " + channel.name);
         logChannel.send("Unlocked " + channel.name);
+
+        //Send notification
+        const liveEmbed = new MessageEmbed()
+        .setColor('##ffffbb')
+        .setTitle('Some title')
+        .setURL('https://www.twitch.tv/mmarshyellow')
+        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
+        .setDescription('Some description here') //STREAM TITLE
+        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
+        .setImage('https://i.imgur.com/AfFp7pu.png') //Stream thumbnail
+
+        //channel.send("Hey <@" + server.id + ", MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!" + { embeds: [liveEmbed] });
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -225,7 +239,6 @@ function UnixTimeSeconds() {
 
 function AddUserToWhitelist(message){
     try {
-        const dateObject = new Date(UnixTimeSeconds());
         if (!ready) return;
 
         if (!message.member.roles.cache.has('720572310393847848')) return;
@@ -234,14 +247,16 @@ function AddUserToWhitelist(message){
         var role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
         member.roles.add(role);
 
+        //Create json array with user id and current time
+        var expiryTime = UnixTimeSeconds() + 2592000000;
+        var user = {"id": member.id, "time": expiryTime};
+
+        const dateObject = new Date(expiryTime);
+
         //User was added to Server Access Role
         supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#851348122746880000> for server details");
         logChannel.send(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
         console.log(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
-
-        //Create json array with user id and current time
-        var expiryTime = UnixTimeSeconds() + 2592000000;
-        var user = {"id": member.id, "time": expiryTime};
 
         //cache current roles.json and parse
         var roles = JSON.parse(fs.readFileSync("./roles.json"));
