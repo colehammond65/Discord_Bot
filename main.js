@@ -175,7 +175,17 @@ function lock(){
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
 
-        
+        //Send notification
+        const liveEmbed = new MessageEmbed()
+        .setColor('#ffffbb')
+        .setTitle('Some title')
+        .setURL('https://www.twitch.tv/mmarshyellow')
+        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
+        .setDescription('Some description here') //STREAM TITLE
+        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
+        .setImage('https://i.imgur.com/AfFp7pu.png') //Stream thumbnail
+
+        //channel.send("Hey <@" + server.id + ", MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!" + { embeds: [liveEmbed] });
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -200,18 +210,6 @@ function unlock(json){
         isLocked = false;
         console.log("Unlocked " + channel.name);
         logChannel.send("Unlocked " + channel.name);
-
-        //Send notification
-        const liveEmbed = new MessageEmbed()
-        .setColor('##ffffbb')
-        .setTitle('Some title')
-        .setURL('https://www.twitch.tv/mmarshyellow')
-        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
-        .setDescription('Some description here') //STREAM TITLE
-        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage('https://i.imgur.com/AfFp7pu.png') //Stream thumbnail
-
-        //channel.send("Hey <@" + server.id + ", MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!" + { embeds: [liveEmbed] });
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
