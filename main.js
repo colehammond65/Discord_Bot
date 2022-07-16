@@ -6,14 +6,14 @@ const RolesJson = "./roles.json";
 const package = require("./package.json");
 var client_id = config.client_id;
 var twitch_token;
-var server;
-var channel;
-var logChannel;
-var supportChannel;
-var letsTalkChannel;
+var server = client.guilds.cache.get(config.serverID);
+var channel = server.channels.cache.get(config.channelID);
+var logChannel = server.channels.cache.get(config.logChannelID);
+var supportChannel = server.channels.cache.get(config.supportChannelID);
+var letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
 var isLocked = false;
 var ready = false;
-var prefix;
+var prefix = config.prefix;
 var readWriteRoles = new Array();
 var readOnlyRoles = new Array();
 var serverAccessRoleId = config.serverAccessRoleId;
@@ -27,16 +27,6 @@ client.login(config.discord_token);
 //Bot startup
 client.on('ready', () => {
     try {
-        //Set vars
-        server = client.guilds.cache.get(config.serverID);
-        channel = server.channels.cache.get(config.channelID);
-        logChannel = server.channels.cache.get(config.logChannelID);
-        supportChannel = server.channels.cache.get(config.supportChannelID);
-        letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
-        
-        // Set prefix var
-        prefix = config.prefix;
-
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
             readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
@@ -107,6 +97,8 @@ client.on("messageCreate", function(message) {
         if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
         if (command === "whitelist") AddUserToWhitelist(message)
         if (command === "talk") Talk(message)
+        if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}talk - sends message to #lets-talk \n ${prefix}help - returns this message`)
+        else {message.reply("Command: (" + command + ") not found or is not yet implemented. Please use !help to see a list of commands."); console.log("Command " + command + " not found or is not yet implemented. Please use !help to see a list of commands.");}
     }
     catch (e) {
         console.log(e); // pass exception object to error log
@@ -157,7 +149,7 @@ function TwitchCheck(){
 }
 
 //Lock the discord channel
-function lock(){
+function lock(json){
     try {
         if (!ready) return;
         if (isLocked) return;
@@ -175,17 +167,20 @@ function lock(){
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
 
+        var streamTitle = json.data[0].title;
+        var thumbnailUrl = json.data[0].thumbnail_url;
+
         //Send notification
         const liveEmbed = new MessageEmbed()
         .setColor('#ffffbb')
-        .setTitle('Some title')
+        .setTitle(streamTitle)
         .setURL('https://www.twitch.tv/mmarshyellow')
         .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
-        .setDescription('Some description here') //STREAM TITLE
+        .setDescription('Marshy is live!')
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage('https://i.imgur.com/AfFp7pu.png') //Stream thumbnail
+        .setImage(thumbnailUrl)
 
-        //channel.send("Hey <@" + server.id + ", MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!" + { embeds: [liveEmbed] });
+        logChannel.send("Hey <@" + server.id + ", MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!" + { embeds: [liveEmbed] });
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -193,7 +188,7 @@ function lock(){
 }
 
 //Unlock the discord channel
-function unlock(json){
+function unlock(){
     try {
         if (!ready) return;
         if (!isLocked) return; 
@@ -264,8 +259,6 @@ function AddUserToWhitelist(message){
 
         //Write json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
-
-        message.delete(1000); //Supposed to delete message
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
