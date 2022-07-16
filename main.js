@@ -6,11 +6,11 @@ const RolesJson = "./roles.json";
 const package = require("./package.json");
 var client_id = config.client_id;
 var twitch_token;
-var server = client.guilds.cache.get(config.serverID);
-var channel = server.channels.cache.get(config.channelID);
-var logChannel = server.channels.cache.get(config.logChannelID);
-var supportChannel = server.channels.cache.get(config.supportChannelID);
-var letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
+var server;
+var channel;
+var logChannel;
+var supportChannel;
+var letsTalkChannel;
 var isLocked = false;
 var ready = false;
 var prefix = config.prefix;
@@ -27,6 +27,13 @@ client.login(config.discord_token);
 //Bot startup
 client.on('ready', () => {
     try {
+        //Set vars
+        server = client.guilds.cache.get(config.serverID);
+        channel = server.channels.cache.get(config.channelID);
+        logChannel = server.channels.cache.get(config.logChannelID);
+        supportChannel = server.channels.cache.get(config.supportChannelID);
+        letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
+
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
             readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
@@ -43,7 +50,7 @@ client.on('ready', () => {
             var setupString = '{"users":[]}';
             fs.writeFileSync(RolesJson, setupString);
         }
-
+        
         //Log startup
         console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
