@@ -188,7 +188,7 @@ function lock(json){
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
         .setImage(thumbnailUrl)
 
-        logChannel.send({
+        streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
             embeds: [liveEmbed],
         });
