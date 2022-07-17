@@ -177,6 +177,8 @@ function lock(json){
 
         var streamTitle = json.data[0].title;
         var thumbnailUrl = json.data[0].thumbnail_url;
+        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
+        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
 
         console.log(thumbnailUrl);
 
