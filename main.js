@@ -189,7 +189,7 @@ function lock(json){
 
         logChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
-            embeds: [EmliveEmbedbed],
+            embeds: [liveEmbed],
         });
     }
     catch (e) {
