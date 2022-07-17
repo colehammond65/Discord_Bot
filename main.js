@@ -38,14 +38,10 @@ client.on('ready', () => {
         streamannouncementChannel = server.channels.cache.get(config.streamannouncementID);
 
         var readWriteRolesJson = config.readWriteRoleIds;
-        for(var i = 0; i < readWriteRolesJson.length; i++) {
-            readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);
-        }
+        for(var i = 0; i < readWriteRolesJson.length; i++) {readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);}
 
         var readOnlyRolesJson = config.readOnlyRoleIds;
-        for(var i = 0; i < readOnlyRolesJson.length; i++) {
-            readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);
-        }
+        for(var i = 0; i < readOnlyRolesJson.length; i++) {readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);}
 
         //check if roles.json exists
         if (!fs.existsSync(RolesJson)) {
