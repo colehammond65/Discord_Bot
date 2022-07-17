@@ -4,6 +4,7 @@ const fs = require('fs');
 const config = require("./config.json");
 const RolesJson = "./roles.json";
 const package = require("./package.json");
+const { debug } = require('console');
 var client_id = config.client_id;
 var twitch_token;
 var server;
@@ -176,6 +177,8 @@ function lock(json){
 
         var streamTitle = json.data[0].title;
         var thumbnailUrl = json.data[0].thumbnail_url;
+
+        console.log(thumbnailUrl);
 
         //Send notification
         const liveEmbed = new MessageEmbed()
