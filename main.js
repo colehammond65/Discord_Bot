@@ -10,7 +10,7 @@ var twitch_token;
 var server;
 var channel;
 var logChannel;
-var streamannouncement;
+var streamannouncementChannel;
 var supportChannel;
 var letsTalkChannel;
 var isLocked = false;
@@ -35,7 +35,7 @@ client.on('ready', () => {
         logChannel = server.channels.cache.get(config.logChannelID);
         supportChannel = server.channels.cache.get(config.supportChannelID);
         letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
-        streamannouncement = server.channels.cache.get(config.streamannouncementID);
+        streamannouncementChannel = server.channels.cache.get(config.streamannouncementID);
 
         var readWriteRolesJson = config.readWriteRoleIds;
         for(var i = 0; i < readWriteRolesJson.length; i++) {
@@ -192,7 +192,7 @@ function lock(json){
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
         .setImage(thumbnailUrl)
 
-        streamannouncement.send({
+        streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
             embeds: [liveEmbed],
         });
