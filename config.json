@@ -1,22 +1,22 @@
 {
-	"discord_token": "ODUwMjU3MTQ3NzIzOTA3MDkz.YLnFrQ.WXC4bKhJGRPSmIT-XU7Ikv5p7p8",
-   	"client_id": "mzpygsb2m62okttpv50e0sqboqwokk",
-	"client_secret": "nkk0f4yh7c4yv7s49bgoxyku3utunt",
-	"streamer": "mmarshyellow",
-	"prefix": "!",
-	"serverID": "720311795704922173",
-	"channelID": "889305263222427688",
-	"streamannouncementID": "720312796260204606",
-	"logChannelID": "798834589459284019",
-	"checkTime": "10000",
-	"readWriteRoleIds": [
-			"722056633114689597",
-			"810733040476880896"
+	"discord_token": "", //DC Bot token
+   	"client_id": "", //Twitch api client ID
+	"client_secret": "", //Twitch api client secret
+	"streamer": "", //Twitch streamer name
+	"prefix": "!", //Command prefix
+	"serverID" : "", //Discord server ID
+	"channelID" : "", //Discord channel ID
+	"streamannouncement": "", //Stream Announce channel ID
+	"logChannelID" : "", //Discord log channel ID
+	"checkTime" : "10000", //How often to check if streamer is live is ms (5000 = 5 seconds)
+	"readWriteRoleIds": [ //list of roles that can see AND post to promo channel
+			"0123456789",
+			"1234567890"
 	],
-	"readOnlyRoleIds": [
-			"720311795704922173"
+	"readOnlyRoleIds": [ //list of roles that and see but not post to promo channel
+			"2345678901"
 	],
-	"serverAccessRoleId": "854539476566933535",
-	"supportChannelID": "869100116273954896",
-	"letsTalkChannelID": "992413981669076992"
+	"serverAccessRoleId": "3456789012", //role that can access the server
+	"supportChannelID": "4567890123", //channel that will be used for support
+	"letsTalkChannelID": "4567890123" //channel that will be used for support
 }
