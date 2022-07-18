@@ -1,4 +1,4 @@
-const { Client, MessageEmbed } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const config = require("./config.json");
@@ -21,7 +21,11 @@ var readOnlyRoles = new Array();
 var serverAccessRoleId = config.serverAccessRoleId;
 
 //#region DJS Setup
-const client = new Client({ intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES"], partials: ["USER", "CHANNEL", "GUILD_MEMBER", "MESSAGE", "REACTION", "GUILD_SCHEDULED_EVENT"] });
+const client = new Client({
+    intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages ], 
+    partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction, Partials.GuildScheduleEvent ] 
+});
+
 
 //Login to DiscordAPI
 client.login(config.discord_token);
