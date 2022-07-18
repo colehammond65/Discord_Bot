@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Partials, MessageEmbed } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const config = require("./config.json");
@@ -23,7 +23,7 @@ var serverAccessRoleId = config.serverAccessRoleId;
 //#region DJS Setup
 const client = new Client({
     intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages ], 
-    partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction, Partials.GuildScheduleEvent ] 
+    partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction ] 
 });
 
 
@@ -167,10 +167,10 @@ function lock(json){
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
         //Edit permissions to lock the channel
         for(var i = 0; i < readWriteRoles.length; i++) {
-            channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: false, SEND_MESSAGES: false});
+            channel.permissionOverwrites.edit(readWriteRoles[i].id, { ViewChannel: false });
         }
         for(var i = 0; i < readOnlyRoles.length; i++) {
-            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: false });
+            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { ViewChannel: false });
         }
         //Set isLocked and log channel changes
         isLocked = true;
@@ -183,7 +183,7 @@ function lock(json){
         thumbnailUrl = thumbnailUrl.replace("{height}", "540");
 
         //Send notification
-        const liveEmbed = new MessageEmbed()
+        const liveEmbed = new EmbedBuilder()
         .setColor('#ffffbb')
         .setTitle(streamTitle)
         .setURL('https://www.twitch.tv/mmarshyellow')
@@ -211,10 +211,10 @@ function unlock(){
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
         //Edit permissions to unlock the channel
         for(var i = 0; i < readWriteRoles.length; i++) {
-            channel.permissionOverwrites.edit(readWriteRoles[i].id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
+            channel.permissionOverwrites.edit(readWriteRoles[i].id, { ViewChannel: true });
         }
         for(var i = 0; i < readOnlyRoles.length; i++) {
-            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { VIEW_CHANNEL: true });
+            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { ViewChannel: true });
         }
         //Set isLocked and log channel changes
         isLocked = false;
