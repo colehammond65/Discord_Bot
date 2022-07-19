@@ -22,7 +22,7 @@ var serverAccessRoleId = config.serverAccessRoleId;
 
 //#region DJS Setup
 const client = new Client({
-    intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages ], 
+    intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages, GatewayIntentBits.MessageContent ], 
     partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction ] 
 });
 
@@ -103,11 +103,11 @@ client.on("messageCreate", function(message) {
         console.log("Command received: " + command);
 
         if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`)
-        if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
-        if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
-        if (command === "whitelist") AddUserToWhitelist(message)
-        if (command === "talk") Talk(message)
-        if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}talk - sends message to #lets-talk \n ${prefix}help - returns this message`)
+        else if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
+        else if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
+        else if (command === "whitelist") AddUserToWhitelist(message)
+        else if (command === "talk") Talk(message)
+        else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}talk - sends message to #lets-talk \n ${prefix}help - returns this message`)
         else {message.reply("Command: (" + command + ") not found or is not yet implemented. Please use !help to see a list of commands."); console.log("Command " + command + " not found or is not yet implemented. Please use !help to see a list of commands.");}
     }
     catch (e) {
