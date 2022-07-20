@@ -177,10 +177,10 @@ function lock(json){
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
 
-         var streamTitle = json.data[0].title;
-/*        var thumbnailUrl = json.data[0].thumbnail_url;
+        var streamTitle = json.data[0].title;
+        var thumbnailUrl = json.data[0].thumbnail_url;
         thumbnailUrl = thumbnailUrl.replace("{width}", "960");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "540"); */
+        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
 
         //Send notification
         const liveEmbed = new EmbedBuilder()
