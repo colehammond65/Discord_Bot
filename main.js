@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
+const download = require('image-downloader');
 const config = require("./config.json");
 const RolesJson = "./roles.json";
 const package = require("./package.json");
@@ -81,6 +82,13 @@ client.on('disconnect', function(erMsg, code) {
         console.log(e); // pass exception object to error handler
     }
 });
+
+function downloadImage(url, filepath) {
+    return download.image({
+       url,
+       dest: filepath 
+    });
+}
 
 //#endregion
 
@@ -178,9 +186,22 @@ function lock(json){
         logChannel.send("Locked " + channel.name);
 
         var streamTitle = json.data[0].title;
+
+        var thumbnailFile = "./images/thumbnail.png";
+        var thumbnail;
         var thumbnailUrl = json.data[0].thumbnail_url;
         thumbnailUrl = thumbnailUrl.replace("{width}", "960");
         thumbnailUrl = thumbnailUrl.replace("{height}", "540");
+
+        downloadImage(thumbnailUrl, thumbnailFile);
+
+        readFile(thumbnailFile, 'utf8', (err, data) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+            thumbnail = data;
+        });
 
         //Send notification
         const liveEmbed = new EmbedBuilder()
@@ -190,7 +211,7 @@ function lock(json){
         .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
         .setDescription('Marshy is live!')
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
+        .setImage(thumbnail)
 
         streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
