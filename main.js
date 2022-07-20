@@ -177,10 +177,10 @@ function lock(json){
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
 
-        var streamTitle = json.data[0].title;
+/*         var streamTitle = json.data[0].title;
         var thumbnailUrl = json.data[0].thumbnail_url;
         thumbnailUrl = thumbnailUrl.replace("{width}", "960");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
+        thumbnailUrl = thumbnailUrl.replace("{height}", "540"); */
 
         //Send notification
         const liveEmbed = new EmbedBuilder()
@@ -190,7 +190,7 @@ function lock(json){
         .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
         .setDescription('Marshy is live!')
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage(thumbnailUrl)
+        .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
 
         streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
