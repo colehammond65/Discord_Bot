@@ -13,7 +13,7 @@ var logChannel;
 var streamannouncementChannel;
 var supportChannel;
 var letsTalkChannel;
-var isLocked = false;
+var isLocked;
 var ready = false;
 var prefix = config.prefix;
 var readWriteRoles = new Array();
@@ -192,10 +192,10 @@ function lock(json){
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
         .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
 
-        streamannouncementChannel.send({
+        /*streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
             embeds: [liveEmbed],
-        });
+        });*/
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
