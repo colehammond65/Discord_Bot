@@ -14,6 +14,7 @@ var streamannouncementChannel;
 var supportChannel;
 var letsTalkChannel;
 var isLocked;
+var isLive;
 var ready = false;
 var prefix = config.prefix;
 var readWriteRoles = new Array();
@@ -148,9 +149,9 @@ function TwitchCheck(){
         //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
         .then(res => {
             //Streamer is live, lock
-            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock(res);
+            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') live(res);
             //Streamer isnt live, unlock
-            else unlock();
+            else offline();
         });
     }
     catch (e) {
@@ -158,8 +159,43 @@ function TwitchCheck(){
     }
 }
 
+//Stream is live
+function live(json){
+    try {
+        if (!ready) return;
+        if (isLive) return;
+        var streamTitle = json.data[0].title;
+        var thumbnailUrl = json.data[0].thumbnail_url;
+        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
+        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
+
+        lock();
+
+        //Send notification
+        const liveEmbed = new EmbedBuilder()
+        .setColor('#ffffbb')
+        .setTitle(streamTitle)
+        .setURL('https://www.twitch.tv/mmarshyellow')
+        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
+        .setDescription('Marshy is live!')
+        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
+        .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
+
+        /*streamannouncementChannel.send({
+            content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
+            embeds: [liveEmbed],
+        });*/
+        isLive = true;
+        console.log("Stream announcement sent");
+        logChannel.send("Stream announcement sent");
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+
 //Lock the discord channel
-function lock(json){
+function lock(){
     try {
         if (!ready) return;
         if (isLocked) return;
@@ -176,26 +212,20 @@ function lock(json){
         isLocked = true;
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
 
-        var streamTitle = json.data[0].title;
-        var thumbnailUrl = json.data[0].thumbnail_url;
-        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
-
-        //Send notification
-        const liveEmbed = new EmbedBuilder()
-        .setColor('#ffffbb')
-        .setTitle(streamTitle)
-        .setURL('https://www.twitch.tv/mmarshyellow')
-        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
-        .setDescription('Marshy is live!')
-        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
-
-        /*streamannouncementChannel.send({
-            content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
-            embeds: [liveEmbed],
-        });*/
+//Streamer isnt live
+function offline(){
+    try {
+        if (!ready) return;
+        if (!isLive) return;
+        unlock();
+        isLive = false;
+        console.log("Streamer offline");
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -313,40 +343,3 @@ async function ExpiryCheck(){
 }
 
 //#endregion
-
-//#region Talk channel
-
-function Talk(message){
-    try {
-        if (!ready) return;
-        async function clear() {
-            msg.delete();
-            const fetched = await msg.channel.fetchMessages({limit: 99});
-            msg.channel.bulkDelete(fetched);
-        }
-
-        var member = message.mentions.members.first();
-
-        letsTalkChannel.permissionOverwrites.set([
-            {
-                id: 720572310393847848,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: 720605380257906758,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: 720637902555447348,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: member.id,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            }
-        ]);
-    }
-    catch (e) {
-        console.log(e); // pass exception object to error handler
-    }
-}
