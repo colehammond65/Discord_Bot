@@ -1,7 +1,6 @@
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
-const download = require('image-downloader');
 const config = require("./config.json");
 const RolesJson = "./roles.json";
 const LiveJson = "./live.json";
