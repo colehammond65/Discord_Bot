@@ -4,8 +4,10 @@ const fs = require('fs');
 const download = require('image-downloader');
 const config = require("./config.json");
 const RolesJson = "./roles.json";
+const LiveJson = "./live.json";
 const package = require("./package.json");
 const { debug } = require('console');
+
 var client_id = config.client_id;
 var twitch_token;
 var server;
@@ -13,8 +15,8 @@ var channel;
 var logChannel;
 var streamannouncementChannel;
 var supportChannel;
-var letsTalkChannel;
 var isLocked = false;
+var isLive;
 var ready = false;
 var prefix = config.prefix;
 var readWriteRoles = new Array();
@@ -26,7 +28,6 @@ const client = new Client({
     intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages, GatewayIntentBits.MessageContent ], 
     partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction ] 
 });
-
 
 //Login to DiscordAPI
 client.login(config.discord_token);
@@ -51,10 +52,24 @@ client.on('ready', () => {
         //check if roles.json exists
         if (!fs.existsSync(RolesJson)) {
             console.log("Roles.json does not exist, creating...");
-            var setupString = '{"users":[]}';
-            fs.writeFileSync(RolesJson, setupString);
+            var RolesSetupString = '{"users":[]}';
+            fs.writeFileSync(RolesJson, RolesSetupString);
         }
-        
+
+        //check if roles.json exists
+        if (!fs.existsSync(LiveJson)) {
+            console.log("Live.json does not exist, creating...");
+            var LiveSetupString = '{"streamer":[]}';
+            fs.writeFileSync(LiveJson, LiveSetupString);
+        }
+        else{
+            //Check if LiveJson is live
+            var Live = JSON.parse(fs.readFileSync("./live.json"));
+            if(Live.streamer.length > 0){
+                isLive = true;
+            }
+        }
+
         //Log startup
         console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
@@ -114,8 +129,7 @@ client.on("messageCreate", function(message) {
         else if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
         else if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
         else if (command === "whitelist") AddUserToWhitelist(message)
-        else if (command === "talk") Talk(message)
-        else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}talk - sends message to #lets-talk \n ${prefix}help - returns this message`)
+        else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}help - returns this message`)
         else {message.reply("Command: (" + command + ") not found or is not yet implemented. Please use !help to see a list of commands."); console.log("Command " + command + " not found or is not yet implemented. Please use !help to see a list of commands.");}
     }
     catch (e) {
@@ -156,7 +170,7 @@ function TwitchCheck(){
         //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
         .then(res => {
             //Streamer is live, lock
-            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') lock(res);
+            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') live(res);
             //Streamer isnt live, unlock
             else unlock();
         });
@@ -166,8 +180,51 @@ function TwitchCheck(){
     }
 }
 
+//Streamer is live
+function live(json){
+    try{
+        if (!ready) return;
+        //Streamer is already live
+        if(isLive) return;
+
+        //Prepare live notifications
+        var streamTitle = json.data[0].title;
+        var thumbnailUrl = json.data[0].thumbnail_url;
+        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
+        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
+
+        //Build embed
+        const liveEmbed = new EmbedBuilder()
+        .setColor('#ffffbb')
+        .setTitle(streamTitle)
+        .setURL('https://www.twitch.tv/mmarshyellow')
+        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
+        .setDescription('Marshy is live!')
+        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
+        .setImage(thumbnailUrl)
+
+        //Send notification
+        streamannouncementChannel.send({
+            content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
+            embeds: [liveEmbed],
+        });
+
+        var streamer = {"live": "true"};
+        var streamers = JSON.parse(fs.readFileSync("./Live.json"));
+        streamers.streamer.push(streamer);
+        fs.writeFileSync("./Live.json", JSON.stringify(streamers));
+        isLive = true;
+
+        //Lock self promo channel
+        lock();
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+
 //Lock the discord channel
-function lock(json){
+function lock(){
     try {
         if (!ready) return;
         if (isLocked) return;
@@ -184,39 +241,6 @@ function lock(json){
         isLocked = true;
         console.log("Locked " + channel.name);
         logChannel.send("Locked " + channel.name);
-
-        var streamTitle = json.data[0].title;
-
-        var thumbnailFile = "./images/thumbnail.png";
-        var thumbnail;
-        var thumbnailUrl = json.data[0].thumbnail_url;
-        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
-
-        downloadImage(thumbnailUrl, thumbnailFile);
-
-        readFile(thumbnailFile, 'utf8', (err, data) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
-            thumbnail = data;
-        });
-
-        //Send notification
-        const liveEmbed = new EmbedBuilder()
-        .setColor('#ffffbb')
-        .setTitle(streamTitle)
-        .setURL('https://www.twitch.tv/mmarshyellow')
-        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
-        .setDescription('Marshy is live!')
-        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage(thumbnail)
-
-        streamannouncementChannel.send({
-            content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
-            embeds: [liveEmbed],
-        });
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -237,6 +261,12 @@ function unlock(){
         for(var i = 0; i < readOnlyRoles.length; i++) {
             channel.permissionOverwrites.edit(readOnlyRoles[i].id, { ViewChannel: true });
         }
+
+        var streamers = JSON.parse(fs.readFileSync("./Live.json"));
+        streamers.streamer.splice(1, 1);
+        fs.writeFileSync("./Live.json", JSON.stringify(streamers));
+        isLive = false;
+
         //Set isLocked and log channel changes
         isLocked = false;
         console.log("Unlocked " + channel.name);
@@ -334,40 +364,3 @@ async function ExpiryCheck(){
 }
 
 //#endregion
-
-//#region Talk channel
-
-function Talk(message){
-    try {
-        if (!ready) return;
-        async function clear() {
-            msg.delete();
-            const fetched = await msg.channel.fetchMessages({limit: 99});
-            msg.channel.bulkDelete(fetched);
-        }
-
-        var member = message.mentions.members.first();
-
-        letsTalkChannel.permissionOverwrites.set([
-            {
-                id: 720572310393847848,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: 720605380257906758,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: 720637902555447348,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: member.id,
-                allow: [Permissions.FLAGS.VIEW_CHANNEL],
-            }
-        ]);
-    }
-    catch (e) {
-        console.log(e); // pass exception object to error handler
-    }
-}
