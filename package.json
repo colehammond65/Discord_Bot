@@ -1,6 +1,6 @@
 {
   "name": "discord_bot",
-  "version": "1.8.4",
+  "version": "1.8.2",
   "description": "Discord bot for streamers",
   "main": "main.js",
   "repository": {
