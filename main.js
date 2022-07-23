@@ -1,10 +1,10 @@
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
+const package = require("./package.json");
 const config = require("./config.json");
 const RolesJson = "./roles.json";
-const package = require("./package.json");
-const { debug } = require('console');
+const LiveJson = "./live.json";
 var client_id = config.client_id;
 var twitch_token;
 var server;
@@ -12,9 +12,8 @@ var channel;
 var logChannel;
 var streamannouncementChannel;
 var supportChannel;
-var letsTalkChannel;
 var isLocked;
-var isLive;
+var hasStarted;
 var ready = false;
 var prefix = config.prefix;
 var readWriteRoles = new Array();
@@ -27,6 +26,7 @@ const client = new Client({
     partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction ] 
 });
 
+//#region Startup
 
 //Login to DiscordAPI
 client.login(config.discord_token);
@@ -50,11 +50,23 @@ client.on('ready', () => {
 
         //check if roles.json exists
         if (!fs.existsSync(RolesJson)) {
-            console.log("Roles.json does not exist, creating...");
-            var setupString = '{"users":[]}';
-            fs.writeFileSync(RolesJson, setupString);
+            console.log("roles.json does not exist, creating...");
+            var RolesSetupString = '{"users":[]}';
+            fs.writeFileSync(RolesJson, RolesSetupString);
         }
         
+        //check if live.json exists
+        if (!fs.existsSync(LiveJson)) {
+            console.log("live.json does not exist, creating...");
+            var LiveSetupString = '{"live":false}';
+            fs.writeFileSync(LiveJson, LiveSetupString);
+        }
+        else {
+            var live = JSON.parse(fs.readFileSync(LiveJson));
+            hasStarted = live.live;
+            console.log("LiveJson: " + (hasStarted ? "online" : "offline"));
+        }
+
         //Log startup
         console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
@@ -64,6 +76,8 @@ client.on('ready', () => {
         console.log(e); // pass exception object to error handler
     }
 });
+
+//#endregion
 
 //#region Misc
 
@@ -107,8 +121,9 @@ client.on("messageCreate", function(message) {
         else if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
         else if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
         else if (command === "whitelist") AddUserToWhitelist(message)
-        else if (command === "talk") Talk(message)
-        else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}talk - sends message to #lets-talk \n ${prefix}help - returns this message`)
+        else if (command === lock) lock();
+        else if (command === unlock) unlock();
+        else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}lock - locks channel \n ${prefix}unlock - unlocks channel`);
         else {message.reply("Command: (" + command + ") not found or is not yet implemented. Please use !help to see a list of commands."); console.log("Command " + command + " not found or is not yet implemented. Please use !help to see a list of commands.");}
     }
     catch (e) {
@@ -128,9 +143,7 @@ fetch('https://id.twitch.tv/oauth2/token?client_id=' + client_id + "&client_secr
     method: 'POST',
 })
 .then(res => res.json())
-.then(res => {
-    twitch_token = res.access_token;
-});
+.then(res => { twitch_token = res.access_token; });
 
 //Check if streamer is live
 function TwitchCheck(){
@@ -149,9 +162,9 @@ function TwitchCheck(){
         //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
         .then(res => {
             //Streamer is live, lock
-            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') live(res);
+            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') StreamStarted(res);
             //Streamer isnt live, unlock
-            else offline();
+            else StreamEnded();
         });
     }
     catch (e) {
@@ -160,18 +173,20 @@ function TwitchCheck(){
 }
 
 //Stream is live
-function live(json){
+function StreamStarted(json){
     try {
         if (!ready) return;
-        if (isLive) return;
+        if (hasStarted) return;
+
+        lock();
+
+        //Setup and send notification
         var streamTitle = json.data[0].title;
         var thumbnailUrl = json.data[0].thumbnail_url;
         thumbnailUrl = thumbnailUrl.replace("{width}", "960");
         thumbnailUrl = thumbnailUrl.replace("{height}", "540");
 
-        lock();
-
-        //Send notification
+        //Build notification
         const liveEmbed = new EmbedBuilder()
         .setColor('#ffffbb')
         .setTitle(streamTitle)
@@ -179,13 +194,21 @@ function live(json){
         .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
         .setDescription('Marshy is live!')
         .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage("https://static-cdn.jtvnw.net/previews-ttv/live_user_mmarshyellow-960x540.jpg")
+        .setImage(thumbnailUrl)
 
+        //Send Notification
         /*streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
             embeds: [liveEmbed],
         });*/
-        isLive = true;
+
+        hasStarted = true;
+
+        var LiveString = {live:true};
+        fs.writeFileSync("./live.json", LiveString);
+        console.log("LiveJson updated to true");
+
+        //Log notification
         console.log("Stream announcement sent");
         logChannel.send("Stream announcement sent");
     }
@@ -219,13 +242,17 @@ function lock(){
 }
 
 //Streamer isnt live
-function offline(){
+function StreamEnded(){
     try {
         if (!ready) return;
-        if (!isLive) return;
+        if (!hasStarted) return;
         unlock();
-        isLive = false;
+        hasStarted = false;
         console.log("Streamer offline");
+        
+        var LiveString = {live:false};
+        fs.writeFileSync("./live.json", LiveString);
+        console.log("LiveJson updated to false");
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
