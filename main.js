@@ -204,7 +204,7 @@ function StreamStarted(json){
 
         hasStarted = true;
 
-        var LiveString = {live:true};
+        var LiveString = {"live":true};
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
 
@@ -250,7 +250,7 @@ function StreamEnded(){
         hasStarted = false;
         console.log("Streamer offline");
         
-        var LiveString = {live:false};
+        var LiveString = {"live":false};
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to false");
     }
