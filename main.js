@@ -319,9 +319,9 @@ function AddUserToWhitelist(message){
         const dateObject = new Date(expiryTime);
 
         //User was added to Server Access Role
-        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist, Please check <#851348122746880000> for server details");
-        logChannel.send(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
-        console.log(member.user.tag + " was added to Server Access Role, their access with expire on " + dateObject);
+        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist. Your access will expire on " + dateObject +" .Please check <#851348122746880000> for server details");
+        logChannel.send(member.user.tag + " was added to Server Access Role, their access will expire on " + dateObject);
+        console.log(member.user.tag + " was added to Server Access Role, their access will expire on " + dateObject);
 
         //cache current roles.json and parse
         var roles = JSON.parse(fs.readFileSync("./roles.json"));
