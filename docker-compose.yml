@@ -1,9 +1,11 @@
-version: "3"
+version: "3.3"
 services:
-  Promo_Discord_Bot:
-    image: encrypt65/Discord_bot
-    container_name: Discord_Bot
-    restart: unless-stopped
-    volumes:
-      - ./config.json:/usr/src/app/config.json
-    network_mode: "host"
+    Promo_Discord_Bot:
+        image: encrypt65/discord_bot
+        container_name: MMY_Discord_Bot
+        restart: unless-stopped
+        volumes:
+            - ./config.json:/usr/src/app/config.json
+            - ./roles.json:/usr/src/app/roles.json
+            - ./live.json:/usr/src/app/live.json
+        network_mode: "host"
