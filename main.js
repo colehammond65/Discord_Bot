@@ -197,10 +197,10 @@ function StreamStarted(json){
         .setImage(thumbnailUrl)
 
         //Send Notification
-        /*streamannouncementChannel.send({
+        streamannouncementChannel.send({
             content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
             embeds: [liveEmbed],
-        });*/
+        });
 
         hasStarted = true;
 
