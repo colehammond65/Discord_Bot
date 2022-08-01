@@ -11,6 +11,6 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "discord.js": "^14.1.2",
-    "node-fetch": "^3.2.10"
+    "node-fetch": "^2.6.7"
   }
 }
