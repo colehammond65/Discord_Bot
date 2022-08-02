@@ -180,7 +180,7 @@ function StreamStarted(json){
 
         lock();
 
-        //Setup and send notification
+/*         //Setup and send notification
         var streamTitle = json.data[0].title;
         var thumbnailUrl = json.data[0].thumbnail_url;
         thumbnailUrl = thumbnailUrl.replace("{width}", "960");
@@ -202,15 +202,15 @@ function StreamStarted(json){
             embeds: [liveEmbed],
         });
 
+        //Log notification
+        console.log("Stream announcement sent");
+        logChannel.send("Stream announcement sent"); */
+
         hasStarted = true;
 
         var LiveString = '{"live":true}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
-
-        //Log notification
-        console.log("Stream announcement sent");
-        logChannel.send("Stream announcement sent");
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
