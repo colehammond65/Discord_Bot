@@ -124,7 +124,7 @@ client.on("messageCreate", function(message) {
         else if (command === lock) lock();
         else if (command === unlock) unlock();
         else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}lock - locks channel \n ${prefix}unlock - unlocks channel`);
-        else {message.reply("Command: (" + command + ") not found or is not yet implemented. Please use !help to see a list of commands."); console.log("Command " + command + " not found or is not yet implemented. Please use !help to see a list of commands.");}
+        else {return;}
     }
     catch (e) {
         console.log(e); // pass exception object to error log
