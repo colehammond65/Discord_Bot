@@ -27,7 +27,6 @@ const client = new Client({
 });
 
 //#region Startup
-
 //Login to DiscordAPI
 client.login(config.discord_token);
 
@@ -42,11 +41,8 @@ client.on('ready', () => {
         letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
         streamannouncementChannel = server.channels.cache.get(config.streamannouncementID);
 
-        var readWriteRolesJson = config.readWriteRoleIds;
-        for(var i = 0; i < readWriteRolesJson.length; i++) {readWriteRoles[i] = server.roles.cache.find(role => role.id === readWriteRolesJson[i]);}
-
-        var readOnlyRolesJson = config.readOnlyRoleIds;
-        for(var i = 0; i < readOnlyRolesJson.length; i++) {readOnlyRoles[i] = server.roles.cache.find(role => role.id === readOnlyRolesJson[i]);}
+        readWriteRoles = config.readWriteRoleIds.map(id => server.roles.cache.find(role => role.id === id));
+        readOnlyRoles = config.readOnlyRoleIds.map(id => server.roles.cache.find(role => role.id === id));
 
         //check if roles.json exists
         if (!fs.existsSync(RolesJson)) {
@@ -54,7 +50,7 @@ client.on('ready', () => {
             var RolesSetupString = '{"users":[]}';
             fs.writeFileSync(RolesJson, RolesSetupString);
         }
-        
+
         //check if live.json exists
         if (!fs.existsSync(LiveJson)) {
             console.log("live.json does not exist, creating...");
@@ -71,23 +67,21 @@ client.on('ready', () => {
         console.log(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         logChannel.send(`Promo Discord Bot - version ${package.version} connected to server ${server.name} as ${client.user.tag}`);
         ready = true;
-        }
+    }
     catch (e) {
         console.log(e); // pass exception object to error handler
     }
 });
-
 //#endregion
 
 //#region Misc
-
 // Automatically reconnect if the bot disconnects due to inactivity
 client.on('disconnect', function(erMsg, code) {
     try {
         //Log disconnects and reconnect
-        bot.connect();
-        console.log(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
-        logChannel.send(`Promo Discord Bot - version ${package.version}` + ' disconnected from Discord with code ' + code + ' for reason:' + erMsg);
+        client.connect();
+        console.log(`Promo Discord Bot - version ${package.version} disconnected from Discord with code ${code} for reason: ${erMsg}`);
+        logChannel.send(`Promo Discord Bot - version ${package.version} disconnected from Discord with code ${code} for reason: ${erMsg}`);
         //Log startup
         console.log(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
         logChannel.send(`Promo Discord Bot - version ${package.version} Reconnected to server ${server.name} as ${client.user.tag}. Version ${package.version}`);
@@ -96,11 +90,9 @@ client.on('disconnect', function(erMsg, code) {
         console.log(e); // pass exception object to error handler
     }
 });
-
 //#endregion
 
 //#region Commands
-
 //Check if someone sent a command
 client.on("messageCreate", function(message) {
     try {
@@ -115,12 +107,11 @@ client.on("messageCreate", function(message) {
         const commandBody = message.content.slice(prefix.length);
         const args = commandBody.split(' ');
         const command = args.shift().toLowerCase();
-        console.log("Command received: " + command);
+        console.log(`Command received: ${command}`);
 
-        if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`)
-        else if (command === "status" && isLocked) message.reply(`Channel : ${channel.name} is currently LOCKED`)
-        else if (command === "status" && !isLocked) message.reply(`Channel : ${channel.name} is currently UNLOCKED`)
-        else if (command === "whitelist") AddUserToWhitelist(message)
+        if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
+        else if (command === "status") message.reply(`Channel: ${channel.name} is currently ${isLocked ? "LOCKED" : "UNLOCKED"}`);
+        else if (command === "whitelist") AddUserToWhitelist(message);
         else if (command === lock) lock();
         else if (command === unlock) unlock();
         else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}lock - locks channel \n ${prefix}unlock - unlocks channel`);
@@ -130,27 +121,25 @@ client.on("messageCreate", function(message) {
         console.log(e); // pass exception object to error log
     }
 });
-
 //#endregion
 
 //#region Twitch Checker
-
 //Set TwitchCheck to fire every checkTime ms
 setInterval(TwitchCheck, config.checkTime)
 
 //Login to Twitch API and get oauth2 token
-fetch('https://id.twitch.tv/oauth2/token?client_id=' + client_id + "&client_secret=" + config.client_secret + "&grant_type=client_credentials", {
+fetch(`https://id.twitch.tv/oauth2/token?client_id=${client_id}&client_secret=${config.client_secret}&grant_type=client_credentials`, {
     method: 'POST',
 })
 .then(res => res.json())
 .then(res => { twitch_token = res.access_token; });
 
 //Check if streamer is live
-function TwitchCheck(){
+function TwitchCheck() {
     try {
         if (!ready) return;
         //Get user data from Twitch API
-        fetch('https://api.twitch.tv/helix/streams?user_login=' + config.streamer, {
+        fetch(`https://api.twitch.tv/helix/streams?user_login=${config.streamer}`, {
             method: 'GET',
             headers: {
                 'Client-ID': config.client_id,
@@ -162,7 +151,7 @@ function TwitchCheck(){
         //trigger channel lock/unlock if needed. '{"data":[],"pagination":{}}' returned when streamer isnt live
         .then(res => {
             //Streamer is live, lock
-            if(JSON.stringify(res) != '{"data":[],"pagination":{}}') StreamStarted(res);
+            if(JSON.stringify(res) !== '{"data":[],"pagination":{}}') StreamStarted(res);
             //Streamer isnt live, unlock
             else StreamEnded();
         });
@@ -173,42 +162,15 @@ function TwitchCheck(){
 }
 
 //Stream is live
-function StreamStarted(json){
+function StreamStarted(json) {
     try {
         if (!ready) return;
         if (hasStarted) return;
 
         lock();
-
-/*         //Setup and send notification
-        var streamTitle = json.data[0].title;
-        var thumbnailUrl = json.data[0].thumbnail_url;
-        thumbnailUrl = thumbnailUrl.replace("{width}", "960");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "540");
-
-        //Build notification
-        const liveEmbed = new EmbedBuilder()
-        .setColor('#ffffbb')
-        .setTitle(streamTitle)
-        .setURL('https://www.twitch.tv/mmarshyellow')
-        .setAuthor({ name: 'mmarshyellow', iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-150x150.png', url: 'https://www.twitch.tv/mmarshyellow' })
-        .setDescription('Marshy is live!')
-        .setThumbnail('https://static-cdn.jtvnw.net/jtv_user_pictures/d4a7ce64-728f-4495-8270-5ea2f0096834-profile_image-300x300.png')
-        .setImage(thumbnailUrl)
-
-        //Send Notification
-        streamannouncementChannel.send({
-            content: 'Hey @everyone, MMarshyellow, is now live https://www.twitch.tv/mmarshyellow ~ Come keep her company!',
-            embeds: [liveEmbed],
-        });
-
-        //Log notification
-        console.log("Stream announcement sent");
-        logChannel.send("Stream announcement sent"); */
-
         hasStarted = true;
 
-        var LiveString = '{"live":true}';
+        const LiveString = '{"live":true}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
     }
@@ -218,23 +180,25 @@ function StreamStarted(json){
 }
 
 //Lock the discord channel
-function lock(){
+function lock() {
     try {
         if (!ready) return;
         if (isLocked) return;
         if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
+
         //Edit permissions to lock the channel
-        for(var i = 0; i < readWriteRoles.length; i++) {
-            channel.permissionOverwrites.edit(readWriteRoles[i].id, { ViewChannel: false });
-        }
-        for(var i = 0; i < readOnlyRoles.length; i++) {
-            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { ViewChannel: false });
-        }
+        readWriteRoles.forEach(role => {
+            channel.permissionOverwrites.edit(role.id, { ViewChannel: false });
+        });
+        readOnlyRoles.forEach(role => {
+            channel.permissionOverwrites.edit(role.id, { ViewChannel: false });
+        });
+
         //Set isLocked and log channel changes
         isLocked = true;
-        console.log("Locked " + channel.name);
-        logChannel.send("Locked " + channel.name);
+        console.log(`Locked ${channel.name}`);
+        logChannel.send(`Locked ${channel.name}`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -242,7 +206,7 @@ function lock(){
 }
 
 //Streamer isnt live
-function StreamEnded(){
+function StreamEnded() {
     try {
         if (!ready) return;
         if (!hasStarted) return;
@@ -250,7 +214,7 @@ function StreamEnded(){
         hasStarted = false;
         console.log("Streamer offline");
         
-        var LiveString = '{"live":false}';
+        const LiveString = '{"live":false}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to false");
     }
@@ -260,71 +224,67 @@ function StreamEnded(){
 }
 
 //Unlock the discord channel
-function unlock(){
+function unlock() {
     try {
         if (!ready) return;
         if (!isLocked) return; 
         if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
+
         //Edit permissions to unlock the channel
-        for(var i = 0; i < readWriteRoles.length; i++) {
-            channel.permissionOverwrites.edit(readWriteRoles[i].id, { ViewChannel: true });
-        }
-        for(var i = 0; i < readOnlyRoles.length; i++) {
-            channel.permissionOverwrites.edit(readOnlyRoles[i].id, { ViewChannel: true });
-        }
+        readWriteRoles.forEach(role => {
+            channel.permissionOverwrites.edit(role.id, { ViewChannel: true });
+        });
+        readOnlyRoles.forEach(role => {
+            channel.permissionOverwrites.edit(role.id, { ViewChannel: true });
+        });
+
         //Set isLocked and log channel changes
         isLocked = false;
-        console.log("Unlocked " + channel.name);
-        logChannel.send("Unlocked " + channel.name);
+        console.log(`Unlocked ${channel.name}`);
+        logChannel.send(`Unlocked ${channel.name}`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
     }
 }
-
 //#endregion
 
 //#region Expiry Roles
-
 //Set ExpiryCheck to fire every checkTime ms
-setInterval(ExpiryCheck, config.checkTime)
+setInterval(ExpiryCheck, config.checkTime);
 
 //Return unix time seconds
 function UnixTimeSeconds() {
     try {
-        var UnixTimeSeconds = Math.floor(Date.now());
-        return UnixTimeSeconds
+        return Math.floor(Date.now());
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
     }
 }
 
-
-function AddUserToWhitelist(message){
+function AddUserToWhitelist(message) {
     try {
-        if (!ready) return;
+        if (!ready || !message.member.roles.cache.has('720572310393847848')) return;
 
-        if (!message.member.roles.cache.has('720572310393847848')) return;
-
-        var member = message.mentions.members.first();
-        var role = server.roles.cache.find(role => role.id ==  serverAccessRoleId)
+        const member = message.mentions.members.first();
+        const role = server.roles.cache.find(role => role.id ==  serverAccessRoleId);
         member.roles.add(role);
 
         //Create json array with user id and current time
-        var expiryTime = UnixTimeSeconds() + 2592000000;
-        var user = {"id": member.id, "time": expiryTime};
+        const expiryTime = UnixTimeSeconds() + 2592000000;
+        const user = {"id": member.id, "time": expiryTime};
 
         const dateObject = new Date(expiryTime);
 
         //User was added to Server Access Role
-        supportChannel.send("<@" + member.user.id + "> You have been added to the server whitelist. Your access will expire on " + dateObject +" .Please check <#851348122746880000> for server details");
-        logChannel.send(member.user.tag + " was added to Server Access Role, their access will expire on " + dateObject);
-        console.log(member.user.tag + " was added to Server Access Role, their access will expire on " + dateObject);
+        supportChannel.send(`<@${member.user.id}> You have been added to the server whitelist. Your access will expire on ${dateObject}. Please check <#851348122746880000> for server details`);
+        logChannel.send(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
+        console.log(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
 
         //cache current roles.json and parse
-        var roles = JSON.parse(fs.readFileSync("./roles.json"));
+        const roles = JSON.parse(fs.readFileSync("./roles.json"));
 
         //Add user to json
         roles.users.push(user);
@@ -337,36 +297,31 @@ function AddUserToWhitelist(message){
     }
 }
 
-async function ExpiryCheck(){
-    var user;
-    var roles = JSON.parse(fs.readFileSync("./roles.json"));
-    var i;
+async function ExpiryCheck() {
+    const roles = JSON.parse(fs.readFileSync("./roles.json"));
     try {
-        //check if the bot is ready
+        // Check if the bot is ready
         if (!ready) return;
-        //cache current roles.json and parse
-        //Loop through users in roles.json
-        for(i= 0; i < roles.users.length; i++) {
-            //Check if user has been in server for more than expiryTime
-            if(UnixTimeSeconds() > roles.users[i].time){
-                //Time has expired, remove user from server access
-                user = await server.members.fetch(roles.users[i].id);
-                user.roles.remove(serverAccessRoleId);
-                //remove user from roles.json
-                roles.users.splice(i, 1);
-                //Write json to file
-                fs.writeFileSync("./roles.json", JSON.stringify(roles));
-                console.log("Removed " + user.user.tag + " from Server Access Role \nRoles.json updated");
+  
+        // Loop through users in roles.json
+        for (const user of roles.users) {
+            // Check if user has been in the server for more than expiryTime
+            if (UnixTimeSeconds() > user.time) {
+                // Time has expired, remove user from server access
+                const member = await server.members.fetch(user.id);
+                member.roles.remove(serverAccessRoleId);
             }
         }
-    }
-    catch (e) {
-        //console.log(e); // pass exception object to error handler
-        roles.users.splice(i, 1);
-        //Write json to file
+  
+        // Remove expired users from roles.json
+        roles.users = roles.users.filter(user => UnixTimeSeconds() <= user.time);
+  
+        // Write roles.json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
-        
+        console.log(`Removed expired users from Server Access Role. Roles.json updated.`);
+        } catch (error) {
+        // Handle error
+        console.log(error);
     }
 }
-
 //#endregion
