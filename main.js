@@ -297,31 +297,35 @@ function AddUserToWhitelist(message) {
     }
 }
 
-async function ExpiryCheck() {
-    const roles = JSON.parse(fs.readFileSync("./roles.json"));
+async function ExpiryCheck(){
+    var user;
+    var roles = JSON.parse(fs.readFileSync("./roles.json"));
+    var i;
     try {
-        // Check if the bot is ready
+        //check if the bot is ready
         if (!ready) return;
-  
-        // Loop through users in roles.json
-        for (const user of roles.users) {
-            // Check if user has been in the server for more than expiryTime
-            if (UnixTimeSeconds() > user.time) {
-                // Time has expired, remove user from server access
-                const member = await server.members.fetch(user.id);
-                member.roles.remove(serverAccessRoleId);
+        //cache current roles.json and parse
+        //Loop through users in roles.json
+        for(i= 0; i < roles.users.length; i++) {
+            //Check if user has been in server for more than expiryTime
+            if(UnixTimeSeconds() > roles.users[i].time){
+                //Time has expired, remove user from server access
+                user = await server.members.fetch(roles.users[i].id);
+                user.roles.remove(serverAccessRoleId);
+                //remove user from roles.json
+                roles.users.splice(i, 1);
+                //Write json to file
+                fs.writeFileSync("./roles.json", JSON.stringify(roles));
+                console.log("Removed " + user.user.tag + " from Server Access Role \nRoles.json updated");
             }
         }
-  
-        // Remove expired users from roles.json
-        roles.users = roles.users.filter(user => UnixTimeSeconds() <= user.time);
-  
-        // Write roles.json to file
+    }
+    catch (e) {
+        //console.log(e); // pass exception object to error handler
+        roles.users.splice(i, 1);
+        //Write json to file
         fs.writeFileSync("./roles.json", JSON.stringify(roles));
-        console.log(`Removed expired users from Server Access Role. Roles.json updated.`);
-        } catch (error) {
-        // Handle error
-        console.log(error);
+        
     }
 }
 //#endregion
