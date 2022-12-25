@@ -108,8 +108,8 @@ client.on("messageCreate", function(message) {
         if (command === "version") message.reply(`Promo Discord Bot connected as ${client.user.tag}. Version ${package.version}`);
         else if (command === "status") message.reply(`Channel: ${channel.name} is currently ${isLocked ? "LOCKED" : "UNLOCKED"}`);
         else if (command === "whitelist") AddUserToWhitelist(message);
-        else if (command === lock) lock();
-        else if (command === unlock) unlock();
+        else if (command === "lock") lock();
+        else if (command === "unlock") unlock();
         else if (command === "help") message.reply(`Commands: \n\n ${prefix}version - returns version \n ${prefix}status - returns status \n ${prefix}whitelist - adds user to whitelist \n ${prefix}lock - locks channel \n ${prefix}unlock - unlocks channel`);
         else {return;}
     }
@@ -160,8 +160,7 @@ function TwitchCheck() {
 //Stream is live
 function StreamStarted(json) {
     try {
-        if (!ready) return;
-        if (hasStarted) return;
+        if (!ready || hasStarted) return;
 
         lock();
         hasStarted = true;
@@ -178,8 +177,7 @@ function StreamStarted(json) {
 //Lock the discord channel
 function lock() {
     try {
-        if (!ready) return;
-        if (isLocked) return;
+        if (!ready || isLocked) return;
         if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
 
@@ -222,8 +220,7 @@ function StreamEnded() {
 //Unlock the discord channel
 function unlock() {
     try {
-        if (!ready) return;
-        if (!isLocked) return; 
+        if (!ready || !isLocked) return;
         if (!Array.isArray(readWriteRoles) || !readWriteRoles.length) return;
         if (!Array.isArray(readOnlyRoles) || !readOnlyRoles.length) return;
 
@@ -277,6 +274,7 @@ function AddUserToWhitelist(message) {
         //User was added to Server Access Role
         logChannel.send(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
         console.log(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
+        message.reply(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
 
         //cache current roles.json and parse
         const roles = JSON.parse(fs.readFileSync("./roles.json"));
