@@ -10,8 +10,6 @@ var twitch_token;
 var server;
 var channel;
 var logChannel;
-var streamannouncementChannel;
-var supportChannel;
 var isLocked;
 var hasStarted;
 var ready = false;
@@ -37,9 +35,7 @@ client.on('ready', () => {
         server = client.guilds.cache.get(config.serverID);
         channel = server.channels.cache.get(config.channelID);
         logChannel = server.channels.cache.get(config.logChannelID);
-        supportChannel = server.channels.cache.get(config.supportChannelID);
         letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
-        streamannouncementChannel = server.channels.cache.get(config.streamannouncementID);
 
         readWriteRoles = config.readWriteRoleIds.map(id => server.roles.cache.find(role => role.id === id));
         readOnlyRoles = config.readOnlyRoleIds.map(id => server.roles.cache.find(role => role.id === id));
@@ -279,7 +275,6 @@ function AddUserToWhitelist(message) {
         const dateObject = new Date(expiryTime);
 
         //User was added to Server Access Role
-        supportChannel.send(`<@${member.user.id}> You have been added to the server whitelist. Your access will expire on ${dateObject}. Please check <#851348122746880000> for server details`);
         logChannel.send(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
         console.log(`${member.user.tag} was added to Server Access Role, their access will expire on ${dateObject}`);
 
