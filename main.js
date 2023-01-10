@@ -202,8 +202,7 @@ function lock() {
 //Streamer isnt live
 function StreamEnded() {
     try {
-        if (!ready) return;
-        if (!hasStarted) return;
+        if (!ready || !hasStarted) return;
         unlock();
         hasStarted = false;
         console.log("Streamer offline");
