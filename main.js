@@ -259,7 +259,7 @@ function UnixTimeSeconds() {
 
 function AddUserToWhitelist(message) {
     try {
-        if (!ready || !message.member.roles.cache.has('720572310393847848')) return;
+        if (!ready) return;
 
         const member = message.mentions.members.first();
         const role = server.roles.cache.find(role => role.id ==  serverAccessRoleId);
