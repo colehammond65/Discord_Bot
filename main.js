@@ -93,6 +93,7 @@ client.on('disconnect', function(erMsg, code) {
 client.on("messageCreate", function(message) {
     try {
         if (!ready) return;
+        if (!message.member.roles.cache.has('720572310393847848')) return;
 
         //Check if message is from myself
         if (message.author.bot) return;
@@ -259,7 +260,6 @@ function UnixTimeSeconds() {
 function AddUserToWhitelist(message) {
     try {
         if (!ready) return;
-        if (!message.member.roles.cache.has('720572310393847848')) return;
 
         const member = message.mentions.members.first();
         const role = server.roles.cache.find(role => role.id ==  serverAccessRoleId);
