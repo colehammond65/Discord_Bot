@@ -10,6 +10,7 @@ var twitch_token;
 var server;
 var channel;
 var logChannel;
+var mcChat;
 var isLocked;
 var hasStarted;
 var ready = false;
@@ -35,6 +36,7 @@ client.on('ready', () => {
         server = client.guilds.cache.get(config.serverID);
         channel = server.channels.cache.get(config.channelID);
         logChannel = server.channels.cache.get(config.logChannelID);
+        mcChat = server.channels.cache.get(config.mcChatID);
         letsTalkChannel = server.channels.cache.get(config.letsTalkChannelID);
 
         readWriteRoles = config.readWriteRoleIds.map(id => server.roles.cache.find(role => role.id === id));
@@ -169,6 +171,8 @@ function StreamStarted(json) {
         const LiveString = '{"live":true}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
+
+        mcChat.send(`MARSHY IS LIVE!`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler

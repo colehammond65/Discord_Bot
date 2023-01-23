@@ -6,8 +6,9 @@
 	"prefix": "!", //Command prefix
 	"serverID" : "", //Discord server ID
 	"channelID" : "", //Discord channel ID
-	"streamannouncement": "", //Stream Announce channel ID
 	"logChannelID" : "", //Discord log channel ID
+	"mcChatID" : "", //Discord log channel ID
+	"streamannouncement": "", //Stream Announce channel ID
 	"checkTime" : "10000", //How often to check if streamer is live is ms (5000 = 5 seconds)
 	"readWriteRoleIds": [ //list of roles that can see AND post to promo channel
 			"0123456789",
