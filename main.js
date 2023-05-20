@@ -25,6 +25,8 @@ const client = new Client({
     partials: [ Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction ] 
 });
 
+//#endregion
+
 //#region Startup
 //Login to DiscordAPI
 client.login(config.discord_token);
