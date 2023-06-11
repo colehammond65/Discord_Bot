@@ -10,7 +10,6 @@ var twitch_token;
 var server;
 var channel;
 var logChannel;
-var mcChat;
 var isLocked;
 var hasStarted;
 var ready = false;
@@ -173,8 +172,6 @@ function StreamStarted(json) {
         const LiveString = '{"live":true}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
-
-        mcChat.send(`MARSHY IS LIVE!`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
