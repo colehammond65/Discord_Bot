@@ -167,11 +167,27 @@ function StreamStarted(json) {
         if (!ready || hasStarted) return;
 
         lock();
+        changeToLiveBanner();
         hasStarted = true;
 
         const LiveString = '{"live":true}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to true");
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+
+//Lock the discord channel
+function changeToLiveBanner() {
+    try {
+        if (!ready || isLocked) return;
+
+        server.setBanner('./banners/Live.png')
+        
+        console.log(`Changed banner`);
+        logChannel.send(`Changed banner`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
@@ -214,6 +230,21 @@ function StreamEnded() {
         const LiveString = '{"live":false}';
         fs.writeFileSync("./live.json", LiveString);
         console.log("LiveJson updated to false");
+    }
+    catch (e) {
+        console.log(e); // pass exception object to error handler
+    }
+}
+
+//Unlock the discord channel
+function changeToNotLiveBanner() {
+    try {
+        if (!ready || isLocked) return;
+
+        server.setBanner('./banners/notLive.png')
+        
+        console.log(`Changed banner`);
+        logChannel.send(`Changed banner`);
     }
     catch (e) {
         console.log(e); // pass exception object to error handler
