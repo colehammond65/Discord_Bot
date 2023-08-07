@@ -224,6 +224,7 @@ function StreamEnded() {
     try {
         if (!ready || !hasStarted) return;
         unlock();
+        changeToNotLiveBanner();
         hasStarted = false;
         console.log("Streamer offline");
         
