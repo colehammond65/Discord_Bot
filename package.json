@@ -1,6 +1,6 @@
 {
   "name": "discord_bot",
-  "version": "1.12.2",
+  "version": "1.12.3",
   "description": "Discord bot for streamers",
   "main": "main.js",
   "repository": {
@@ -10,7 +10,7 @@
   "author": "Cole Hammond",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "discord.js": "^14.12.1",
+    "discord.js": "^14.13.0",
     "node-fetch": "^2.6.12"
   }
 }
