@@ -1,4 +1,4 @@
-FROM node:21.4-bookworm-slim
+FROM node:21.6.1-bookworm-slim
 
 # Create app directory
 WORKDIR /usr/src/app
